@@ -120,7 +120,7 @@ namespace Model
             //calc current storage capacity for all resources
             foreach (var building in _data.Buildings)
             {
-                if (building.TurnsToBuild > 0)
+                if (building.TurnsToBuild > 0 && building.Level == 0) 
                     continue;
 
                 // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
@@ -226,7 +226,7 @@ namespace Model
 
         private int GetBuildingCollectionRate(Building building)
         {
-            if (building.TurnsToBuild > 0 || building.Deterioration >= 127)
+            if ((building.TurnsToBuild > 0 && building.Level == 0) || building.Deterioration >= 127)
                 return 0;
 
             return GetCollectionLevelMultiplier(building.Level) +

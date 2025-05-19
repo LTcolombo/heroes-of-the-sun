@@ -28,7 +28,7 @@ pub mod wait {
 
         //calc current storage capacity for all resources
         for building in settlement.buildings.to_vec() {
-            if building.turns_to_build > 0 {
+            if building.turns_to_build > 0 && building.level == 0 {
                 continue;
             }
 
@@ -72,7 +72,7 @@ pub mod wait {
 
         //wells generate water without worker assigned
         for building in settlement.buildings.to_vec() {
-            if building.turns_to_build > 0 {
+            if building.turns_to_build > 0 && building.level == 0 {
                 continue;
             }
             match building.id {
