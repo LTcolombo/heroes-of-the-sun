@@ -4557,7 +4557,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1535017168}
         m_TargetAssemblyTypeName: View.UI.ManageTokenCreation, Assembly-CSharp
-        m_MethodName: NextIcon
+        m_MethodName: OpenImage
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

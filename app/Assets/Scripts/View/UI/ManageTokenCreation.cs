@@ -1,7 +1,9 @@
 using System.Collections;
+using System.IO;
 using System.Text;
 using Connectors;
 using Solana.Unity.SDK;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -16,9 +18,11 @@ namespace View.UI
         public InputField symbolInput;
         public InputField descriptionInput;
         [Inject] private TokenConnector _token;
-        
+
         // Pinata V3 Upload API + JWT
-        private const string PinataJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmYTVjZGNjNS1hZTYxLTQzMjMtYmZmYi04MGI3MTllYzk0MmQiLCJlbWFpbCI6Im4uYmFseWFuaXRzYUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMTVmNzEzZGJkOTk5YjZkZDZmMTIiLCJzY29wZWRLZXlTZWNyZXQiOiIyODQwMzVkZWJlZjNiZmVkZmRiNGVmZmZiMDU5ODg4NzFmZjczNGJhY2RjYzU3MjRhODVjYjZjNzBhYTkzMmM1IiwiZXhwIjoxNzc5MTQwNjU2fQ.NtPtNGnlL72X_2GCFn-T-PkAZr4moD34fCVZmrssFOU";
+        private const string PinataJwt =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmYTVjZGNjNS1hZTYxLTQzMjMtYmZmYi04MGI3MTllYzk0MmQiLCJlbWFpbCI6Im4uYmFseWFuaXRzYUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMTVmNzEzZGJkOTk5YjZkZDZmMTIiLCJzY29wZWRLZXlTZWNyZXQiOiIyODQwMzVkZWJlZjNiZmVkZmRiNGVmZmZiMDU5ODg4NzFmZjczNGJhY2RjYzU3MjRhODVjYjZjNzBhYTkzMmM1IiwiZXhwIjoxNzc5MTQwNjU2fQ.NtPtNGnlL72X_2GCFn-T-PkAZr4moD34fCVZmrssFOU";
+
         private const string PinataV3UploadUrl = "https://uploads.pinata.cloud/v3/files";
 
         [SerializeField] private Sprite[] icons;
@@ -27,14 +31,34 @@ namespace View.UI
         private void OnEnable()
         {
             _index = 0;
-            NextIcon();
         }
 
-        public void NextIcon()
+        public void OpenImage()
         {
-            icon.sprite = icons[_index++ % icons.Length];
+            var path = EditorUtility.OpenFilePanel("Select PNG Image", "", "png");
+
+            if (string.IsNullOrEmpty(path)) return;
+            
+            var fileData = File.ReadAllBytes(path);
+            var texture = new Texture2D(2, 2); // Size will be overridden
+            if (texture.LoadImage(fileData))
+            {
+                // Create sprite
+                var sprite = Sprite.Create(
+                    texture,
+                    new Rect(0, 0, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f)
+                );
+
+                icon.sprite = sprite;
+                Debug.Log("Sprite loaded from: " + path);
+            }
+            else
+            {
+                Debug.LogError("Failed to load texture from PNG.");
+            }
         }
-    
+
         public void OnSubmit()
         {
             StartCoroutine(UploadImageAndMetadataV3());
@@ -66,12 +90,14 @@ namespace View.UI
             var metadataJson = JsonUtility.ToJson(metadata, true);
             var metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
             string metadataIpfsUrl = null;
-            yield return UploadFileToPinataV3(metadataBytes, "metadata.json", "application/json", cid => metadataIpfsUrl = cid);
+            yield return UploadFileToPinataV3(metadataBytes, "metadata.json", "application/json",
+                cid => metadataIpfsUrl = cid);
 
             _ = _token.CreateToken(metadataIpfsUrl);
         }
 
-        private IEnumerator UploadFileToPinataV3(byte[] fileData, string fileName, string contentType, System.Action<string> onSuccess)
+        private IEnumerator UploadFileToPinataV3(byte[] fileData, string fileName, string contentType,
+            System.Action<string> onSuccess)
         {
             var boundary = "----UnityFormBoundary" + System.Guid.NewGuid().ToString("N");
             var body = new System.Collections.Generic.List<byte>();
@@ -125,7 +151,7 @@ namespace View.UI
         {
             public string cid;
         }
-        
+
         [System.Serializable]
         private class PinataResponse
         {
