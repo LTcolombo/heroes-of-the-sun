@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
-using Solana.Unity.Wallet;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils.Injection;

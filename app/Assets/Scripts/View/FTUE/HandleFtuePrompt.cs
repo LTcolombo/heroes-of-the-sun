@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils.Injection;
+using View.UI;
 
 namespace View.Ftue
 {
@@ -31,7 +32,7 @@ namespace View.Ftue
         // private static HandleFtuePrompt _instance;
         private FtuePrompt[] _prompts;
         private int _index;
-        private const float Padding = 10;
+        private const float Padding = 30;
         private const float Gap = 30;
 
         private void Start()
@@ -65,9 +66,11 @@ namespace View.Ftue
             var settings = promptText.GetGenerationSettings(promptText.rectTransform.rect.size);
 
             var textGen = new TextGenerator();
-            promptContainer.sizeDelta = new Vector2(
-                textGen.GetPreferredWidth(value.promptText, settings) + Padding,
-                textGen.GetPreferredHeight(value.promptText, settings) + Padding);
+
+            var canvas = DisplayFtueSequence.FindRenderingCanvas(promptText.transform as RectTransform);
+            promptContainer.sizeDelta = Vector2.one * Padding + new Vector2(
+                textGen.GetPreferredWidth(value.promptText, settings),
+                textGen.GetPreferredHeight(value.promptText, settings)) / canvas.transform.localScale;
 
             var offsetRect = promptContainer.rect.size + canvasRect.size + Vector2.one * Gap;
             promptContainer.anchoredPosition = cutout.anchoredPosition + offsetRect / 2 * value.promptLocation;

@@ -100,5 +100,10 @@ namespace Connectors
                 AccountMeta.ReadOnly(AssociatedTokenAccountProgram.ProgramIdKey, false)
             };
         }
+
+        public async Task CreateToken(string metadataUrl)
+        {
+            // throw new NotImplementedException();
+        }
     }
 }
