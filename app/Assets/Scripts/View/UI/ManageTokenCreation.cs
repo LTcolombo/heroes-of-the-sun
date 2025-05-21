@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Connectors;
 using Solana.Unity.SDK;
@@ -19,6 +21,12 @@ namespace View.UI
         public InputField descriptionInput;
         [Inject] private TokenConnector _token;
 
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void UploadFile(string gameObjectName, string methodName, string accept);
+#endif
+
         // Pinata V3 Upload API + JWT
         private const string PinataJwt =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmYTVjZGNjNS1hZTYxLTQzMjMtYmZmYi04MGI3MTllYzk0MmQiLCJlbWFpbCI6Im4uYmFseWFuaXRzYUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMTVmNzEzZGJkOTk5YjZkZDZmMTIiLCJzY29wZWRLZXlTZWNyZXQiOiIyODQwMzVkZWJlZjNiZmVkZmRiNGVmZmZiMDU5ODg4NzFmZjczNGJhY2RjYzU3MjRhODVjYjZjNzBhYTkzMmM1IiwiZXhwIjoxNzc5MTQwNjU2fQ.NtPtNGnlL72X_2GCFn-T-PkAZr4moD34fCVZmrssFOU";
@@ -35,10 +43,12 @@ namespace View.UI
 
         public void OpenImage()
         {
+#if UNITY_EDITOR
+
             var path = EditorUtility.OpenFilePanel("Select PNG Image", "", "png");
 
             if (string.IsNullOrEmpty(path)) return;
-            
+
             var fileData = File.ReadAllBytes(path);
             var texture = new Texture2D(2, 2); // Size will be overridden
             if (texture.LoadImage(fileData))
@@ -57,8 +67,44 @@ namespace View.UI
             {
                 Debug.LogError("Failed to load texture from PNG.");
             }
+
+#else
+            UploadFile(gameObject.name, nameof(OnFileUploaded), ".png");
+#endif
         }
 
+        // Called from JS with PNG bytes
+        public void OnFileUploaded(string payload)
+        {
+            var split = payload.Split('|');
+            if (split.Length != 2)
+            {
+                Debug.LogError("Invalid payload from JS");
+                return;
+            }
+
+            string fileName = split[0];
+            string base64Data = split[1];
+            byte[] fileData = Convert.FromBase64String(base64Data);
+
+            Texture2D tex = new Texture2D(2, 2);
+            if (tex.LoadImage(fileData))
+            {
+                Sprite sprite = Sprite.Create(
+                    tex,
+                    new Rect(0, 0, tex.width, tex.height),
+                    new Vector2(0.5f, 0.5f)
+                );
+                icon.sprite = sprite;
+                Debug.Log("Loaded sprite from: " + fileName);
+            }
+            else
+            {
+                Debug.LogError("Texture load failed.");
+            }
+        }
+        
+        
         public void OnSubmit()
         {
             StartCoroutine(UploadImageAndMetadataV3());
