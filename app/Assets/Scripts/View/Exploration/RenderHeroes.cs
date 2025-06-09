@@ -25,7 +25,7 @@ namespace View.Exploration
             var list = new List<Solana.Unity.Rpc.Models.MemCmp>
                 { new() { Bytes = Hero.Accounts.Hero.ACCOUNT_DISCRIMINATOR_B58, Offset = 0 } };
 
-            var accounts = (await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
+            var accounts = (await Web3.Rpc.GetProgramAccountsAsync(
                 _connector.GetComponentProgramAddress(), Commitment.Confirmed, memCmpList: list)).Result;
 
             //concat with non-rollup accounts?

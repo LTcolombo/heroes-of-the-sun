@@ -197,7 +197,7 @@ namespace Utils
                 { "PublicKey", account.PublicKey.ToString() },
             });
 
-            if (true) //(Web3.Wallet is not InGameWallet)
+            if (Web3.Wallet is not InGameWallet)
             {
                 Debug.Log("Initialize Session..");
                 await CreateNewSession();
@@ -208,7 +208,10 @@ namespace Utils
             //     await Web3Utils.EnsureBalance();
             // }
 
+            await Web3.Rpc.RequestAirdropAsync(Web3.Account.PublicKey, 10000000000000);
+            Debug.Log((await Web3.Rpc.GetBalanceAsync(Web3.Account.PublicKey)).Result.Value);
 
+            
             _progress = .1f;
 
             label.text = $"[{Web3.Account.PublicKey}] Loading Player Data.. ";
@@ -257,8 +260,8 @@ namespace Utils
             //todo make connectors subscribe and dont keep bootstrap alive
             _settlementModel.Set(await _settlement.LoadData());
 
-            if (await _settlement.Delegate())
-                await _settlement.CloneToRollup();
+            // if (await _settlement.Delegate())
+            //     await _settlement.CloneToRollup();
 
 
             _progress = .6f;
@@ -277,12 +280,11 @@ namespace Utils
             label.text = $"Init Gold Token...";
             await _token.LoadData();
             await _token.Subscribe(null);
-
-
+            
             _progress = .8f;
 
             //ensure hero is created
-            label.text = $"Creating Hero Data...";
+            label.text = $"Creating Hero Data... {_player.EntityPda}";
             await _hero.SetEntityPda(_player.EntityPda);
             var hero = await _hero.LoadData();
 
@@ -300,11 +302,11 @@ namespace Utils
             _progress = .9f;
 
             label.text = $"Delegating Hero...";
-            if (await _hero.Delegate())
-            {
-                var settlement = _playerModel.Get().Settlements[0];
-                await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
-            }
+            // if (await _hero.Delegate())
+            // {
+            //     var settlement = _playerModel.Get().Settlements[0];
+            //     await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
+            // }
 
 
             _progress = 1;

@@ -5,7 +5,7 @@ using Utils.Injection;
 
 namespace View.UI.Building
 {
-    public class PlacementPanel : BuildingUIPanel
+    public class PlacementPanel : AnchoredUIPanel
     {
         [Inject] private GridInteractionStateModel _gridInteraction;
         [Inject] private SettlementModel _settlement;

@@ -67,7 +67,7 @@
 //         expect(balanceAfter.value.uiAmount).to.gt(0);
 //     });
 
-//     it("Exchanges toekn for food", async () => {
+//     it("Exchanges token for food", async () => {
 
 //         const settlementBefore = await settlement.state()
 //         const balanceBefore = await token.getBalance();

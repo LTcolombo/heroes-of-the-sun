@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Hero.Program;
 using Newtonsoft.Json;
@@ -25,10 +26,9 @@ using UndelegateAccounts = Settlement.Program.UndelegateAccounts;
 
 namespace Connectors
 {
-    [Singleton]
+    // [Singleton]
     public abstract class BaseComponentConnector<T> : InjectableObject
     {
-        
         private WalletBase Wallet => _delegated
             ? Web3Utils.EphemeralWallet
             : Web3.Wallet;
@@ -41,12 +41,12 @@ namespace Connectors
 
         //this comes from program deployment
         private const string
-            WorldPda = "H4it5GRk6S2f7sZ9eDm178QhAoFiTby4AzMFBvG5quYL";
-        //WorldPda = "5Fj5HJud66muuDyateWdP2HAPkED7CnyApDQBMreVQQH";
+            // WorldPda = "H4it5GRk6S2f7sZ9eDm178QhAoFiTby4AzMFBvG5quYL";
+            WorldPda = "5Fj5HJud66muuDyateWdP2HAPkED7CnyApDQBMreVQQH";
 
 
-        protected const int WorldIndex = 1777;
-        //private const int WorldIndex = 2;
+        // protected const int WorldIndex = 1777;
+        protected const int WorldIndex = 2;
 
         public string EntityPda => _entityPda;
         public string DataAddress => _dataAddress;
@@ -191,24 +191,35 @@ namespace Connectors
                     if (!forceCreateEntity)
                         return;
 
-                    var tx = new Transaction
+                    if (_seed == null) //this basically means entity WAS created externally, but very recenlty
                     {
-                        FeePayer = Web3.Account,
-                        Instructions = new List<TransactionInstruction>
+                        while (entityState.Result.Value == null)
                         {
-                            WorldProgram.AddEntity(new AddEntityAccounts()
+                            await Task.Delay(2000);
+                            entityState = await RpcClient.GetAccountInfoAsync(_entityPda);
+                        }
+                    }
+                    else
+                    {
+                        var tx = new Transaction
+                        {
+                            FeePayer = Web3.Account,
+                            Instructions = new List<TransactionInstruction>
                             {
-                                Payer = Web3.Account.PublicKey,
-                                World = new(WorldPda),
-                                Entity = new(_entityPda),
-                                SystemProgram = SystemProgram.ProgramIdKey
-                            }, _seed)
-                        },
-                        RecentBlockHash = await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false)
-                    };
+                                WorldProgram.AddEntity(new AddEntityAccounts()
+                                {
+                                    Payer = Web3.Account.PublicKey,
+                                    World = new(WorldPda),
+                                    Entity = new(_entityPda),
+                                    SystemProgram = SystemProgram.ProgramIdKey
+                                }, _seed)
+                            },
+                            RecentBlockHash = await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false)
+                        };
 
-                    var result = await walletBase.SignAndSendTransaction(tx, true);
-                    await RpcClient.ConfirmTransaction(result.Result, Commitment.Confirmed);
+                        var result = await walletBase.SignAndSendTransaction(tx, true);
+                        await RpcClient.ConfirmTransaction(result.Result, Commitment.Confirmed);
+                    }
                 }
 
                 var dataAddress = Pda.FindComponentPda(new(_entityPda), GetComponentProgramAddress());
@@ -332,7 +343,6 @@ namespace Connectors
             Dictionary<PublicKey, PublicKey> extraEntities = null, bool useDataAddress = false,
             AccountMeta[] accounts = null, bool ignoreSession = false)
         {
-            
             var systemApplicationInstruction =
                 useDataAddress
                     ? GetSystemApplicationInstructionFromDataAddress(
@@ -370,14 +380,14 @@ namespace Connectors
             var authority = Web3Utils.SessionToken == null || ignoreSession
                 ? Web3.Wallet.Account.PublicKey
                 : Web3Utils.SessionWallet.Account.PublicKey;
-            
+
             return WorldProgram.ApplySystem(
                 new PublicKey(WorldPda),
                 systemAddress,
                 input,
                 Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(args)),
                 authority,
-                ignoreSession?null:Web3Utils.SessionWallet?.SessionTokenPDA);
+                ignoreSession ? null : Web3Utils.SessionWallet?.SessionTokenPDA);
         }
 
         private TransactionInstruction GetSystemApplicationInstructionFromDataAddress(
@@ -412,11 +422,13 @@ namespace Connectors
         private async UniTask<bool> ExecuteSystemApplicationInstruction(
             TransactionInstruction systemApplicationInstruction, bool ignoreSession = false)
         {
-            var walletAccount = Web3Utils.SessionToken == null || ignoreSession ? Wallet.Account : Web3Utils.SessionWallet.Account;
+            var walletAccount = Web3Utils.SessionToken == null || ignoreSession
+                ? Wallet.Account
+                : Web3Utils.SessionWallet.Account;
             var signers = new List<Account>
-                {
-                    walletAccount
-                };
+            {
+                walletAccount
+            };
 
             var blockHashResponse = await RpcClient.GetLatestBlockHashAsync(Commitment.Processed);
             if (!blockHashResponse.WasSuccessful || blockHashResponse.Result?.Value?.Blockhash == null)
@@ -432,7 +444,6 @@ namespace Connectors
             var signature = await RpcClient.SendTransactionAsync(transaction, true, Commitment.Confirmed);
             if (!signature.WasSuccessful)
             {
-
                 string errorMessage = signature.Reason;
                 errorMessage += "\n" + signature.RawRpcResponse;
                 if (signature.ErrorData != null)
@@ -443,7 +454,7 @@ namespace Connectors
                 Debug.LogError(errorMessage);
                 return false;
             }
-            
+
             await RpcClient.ConfirmTransaction(signature.Result, Commitment.Confirmed);
             Debug.Log($"System Application Result: {signature.WasSuccessful} {signature.Result}");
             return true;

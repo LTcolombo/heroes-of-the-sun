@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
-using Smartobjectlocation.Accounts;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using UnityEngine;
@@ -29,7 +28,7 @@ namespace View.Exploration
                 Destroy(child.gameObject);
 
             var list = new List<Solana.Unity.Rpc.Models.MemCmp>
-                { new() { Bytes = SmartObjectLocation.ACCOUNT_DISCRIMINATOR_B58, Offset = 0 } };
+                { new() { Bytes = SmartObjectLocation.Accounts.SmartObjectLocation.ACCOUNT_DISCRIMINATOR_B58, Offset = 0 } };
 
             var accounts = (await Web3.Rpc.GetProgramAccountsAsync(
                 _connector.GetComponentProgramAddress(), Commitment.Confirmed, memCmpList: list)).Result;

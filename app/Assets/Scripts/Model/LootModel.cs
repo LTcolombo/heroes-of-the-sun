@@ -12,9 +12,9 @@ namespace Model
     {
         public readonly Signal Updated = new();
 
-        private Lootdistribution.Accounts.LootDistribution _data;
+        private LootDistribution.Accounts.LootDistribution _data;
 
-        public void Set(Lootdistribution.Accounts.LootDistribution value)
+        public void Set(LootDistribution.Accounts.LootDistribution value)
         {
             const int chunkSize = 24;
             var i = 0;
@@ -51,7 +51,7 @@ namespace Model
             Updated.Dispatch();
         }
 
-        public Lootdistribution.Accounts.LootDistribution Get()
+        public LootDistribution.Accounts.LootDistribution Get()
         {
             return _data;
         }

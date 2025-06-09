@@ -12,7 +12,7 @@ using BuildingType = Settlement.Types.BuildingType;
 
 namespace View.UI.Building
 {
-    public class BuildingInfo : BuildingUIPanel
+    public class BuildingInfo : AnchoredUIPanel
     {
         [Inject] private SettlementModel _settlement;
         [Inject] private PlayerSettlementConnector _connector;

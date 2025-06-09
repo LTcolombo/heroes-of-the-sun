@@ -7,7 +7,7 @@ using Utils.Injection;
 
 namespace View.UI.Building
 {
-    public class BuildingProgress : BuildingUIPanel
+    public class BuildingProgress : AnchoredUIPanel
     {
         [Inject] private SettlementModel _settlement;
 

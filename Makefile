@@ -4,11 +4,12 @@ all:
 	-exec dotnet anchorgen -i target/idl/player.json -o app/Assets/Scripts/Bolt/Player.cs  \;
 	-exec dotnet anchorgen -i target/idl/locationallocator.json -o app/Assets/Scripts/Bolt/LocationAllocator.cs  \;
 	-exec dotnet anchorgen -i target/idl/hero.json -o app/Assets/Scripts/Bolt/Hero.cs  \;
-	-exec dotnet anchorgen -i target/idl/lootdistribution.json -o app/Assets/Scripts/Bolt/LootDistribution.cs  \;
-	-exec dotnet anchorgen -i target/idl/smartobjectlocation.json -o app/Assets/Scripts/Bolt/SmartObjectLocation.cs  \;
-	-exec dotnet anchorgen -i target/idl/smartobjectdeity.json -o app/Assets/Scripts/Bolt/SmartObjectDeity.cs  \;
+	-exec dotnet anchorgen -i target/idl/loot_distribution.json -o app/Assets/Scripts/Bolt/LootDistribution.cs  \;
+	-exec dotnet anchorgen -i target/idl/smart_object_location.json -o app/Assets/Scripts/Bolt/SmartObjectLocation.cs  \;
+	-exec dotnet anchorgen -i target/idl/smart_object_deity.json -o app/Assets/Scripts/Bolt/SmartObjectDeity.cs  \;
 	-exec dotnet anchorgen -i target/idl/token_minter.json -o app/Assets/Scripts/Bolt/TokenMinter.cs  \;
 	-exec dotnet anchorgen -i target/idl/deity_bot.json -o app/Assets/Scripts/Bolt/DeityBot.cs  \;
+	-exec dotnet anchorgen -i target/idl/smartobjecttokenlauncher.json -o app/Assets/Scripts/Bolt/SmartObjectTokenLauncher.cs  \;
 
 
 

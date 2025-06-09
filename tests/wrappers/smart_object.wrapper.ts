@@ -9,6 +9,8 @@ import {
 import { SmartObjectLocation } from "../../target/types/smart_object_location";
 import { SmartObjectDeity } from "../../target/types/smart_object_deity";
 import { SmartObjectInit } from "../../target/types/smart_object_init";
+import { SmartObjectTokenLauncherInit } from "../../target/types/smart_object_token_launcher_init";
+import { Smartobjecttokenlauncher } from "../../target/types/smartobjecttokenlauncher";
 
 
 
@@ -16,6 +18,11 @@ export type SmartObjectInitArgs = {
   x: number,
   y: number,
   entity: number[]
+}
+
+
+export type SmartObjectTokenLauncherInitArgs = {
+  mint: number[]
 }
 
 export type DeityInteractionArgs = {
@@ -30,9 +37,11 @@ export class SmartObjectWrapper {
   entityPda: PublicKey;
   locationComponentPda: PublicKey;
   deityComponentPda: PublicKey;
+  tokenLauncherComponentPda: PublicKey;
 
   smartObjectLocationComponent: Program<SmartObjectLocation>;
   smartObjectDeityComponent: Program<SmartObjectDeity>;
+  smartObjectTokenLauncherComponent: Program<Smartobjecttokenlauncher>;
 
   async init(worldPda: PublicKey) {
 
@@ -45,11 +54,12 @@ export class SmartObjectWrapper {
         payer: this.provider.wallet.publicKey,
         world: this.worldPda,
         connection: this.provider.connection,
-        seed: new Uint8Array(Buffer.from("hots_smart_object_test2"))
+        seed: new Uint8Array(Buffer.from("hots_smart_object_test"))
       });
 
       this.smartObjectLocationComponent = anchor.workspace.SmartObjectLocation as Program<SmartObjectLocation>;
       this.smartObjectDeityComponent = anchor.workspace.SmartObjectDeity as Program<SmartObjectDeity>;
+      this.smartObjectTokenLauncherComponent = anchor.workspace.Smartobjecttokenlauncher as Program<Smartobjecttokenlauncher>;
 
       let txSign = await this.provider.sendAndConfirm(smartObjectEntity.transaction);
       this.entityPda = smartObjectEntity.entityPda;
@@ -64,15 +74,32 @@ export class SmartObjectWrapper {
       this.locationComponentPda = initializeComponent.componentPda;
       console.log(`Initialized the smart object location component. Initialization signature: ${txSign}`);
 
-      initializeComponent = await InitializeComponent({
-        payer: this.provider.wallet.publicKey,
-        entity: this.entityPda,
-        componentId: this.smartObjectDeityComponent.programId
-      });
-      txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
-      this.deityComponentPda = initializeComponent.componentPda;
-      console.log(`Initialized the smart object functional component. Initialization signature: ${txSign}`);
+
     }
+  }
+
+  async InitDeity() {
+
+    const initializeComponent = await InitializeComponent({
+      payer: this.provider.wallet.publicKey,
+      entity: this.entityPda,
+      componentId: this.smartObjectDeityComponent.programId
+    });
+    const txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
+    this.deityComponentPda = initializeComponent.componentPda;
+    console.log(`Initialized the smart object Deity component. Initialization signature: ${txSign}`);
+  }
+
+  async InitTokenLauncher() {
+
+    const initializeComponent = await InitializeComponent({
+      payer: this.provider.wallet.publicKey,
+      entity: this.entityPda,
+      componentId: this.smartObjectTokenLauncherComponent.programId
+    });
+    const txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
+    this.tokenLauncherComponentPda = initializeComponent.componentPda;
+    console.log(`Initialized the smart object TokenLauncher component. Initialization signature: ${txSign}`);
   }
 
   async location() {
@@ -82,6 +109,34 @@ export class SmartObjectWrapper {
 
   async deity() {
     return await this.smartObjectDeityComponent.account.smartObjectDeity.fetch(this.deityComponentPda);
+  }
+
+
+  async tokenLauncher() {
+    return await this.smartObjectTokenLauncherComponent.account.smartObjectTokenLauncher.fetch(this.tokenLauncherComponentPda);
+  }
+
+  async setTokenMint(args: SmartObjectTokenLauncherInitArgs) {
+    // Run the build system
+
+
+    console.log("setTokenMint");
+
+    const applySystem = await ApplySystem({
+      world: this.worldPda,
+      authority: this.provider.wallet.publicKey,
+      systemId: (anchor.workspace.SmartObjectTokenLauncherInit as Program<SmartObjectTokenLauncherInit>).programId,
+      entities: [{
+        entity: this.entityPda,
+        components: [{ componentId: this.smartObjectTokenLauncherComponent.programId }],
+      }],
+      args
+    });
+
+    const txSign = await this.provider.sendAndConfirm(applySystem.transaction);
+    console.log(`setTokenMint tx: ${txSign} `);
+
+    return await this.tokenLauncher();
   }
 
   async initObj(args: SmartObjectInitArgs) {
@@ -98,9 +153,9 @@ export class SmartObjectWrapper {
     });
 
     const txSign = await this.provider.sendAndConfirm(applySystem.transaction);
-    console.log(`assignHero tx: ${txSign}`);
+    console.log(`initObj tx: ${txSign} `);
 
-    return await this.deity();
+    return await this.location();
   }
 
 
@@ -124,7 +179,7 @@ export class SmartObjectWrapper {
     });
 
     const txSign = await this.provider.sendAndConfirm(applySystem.transaction);
-    console.log(`assignHero tx: ${txSign}`);
+    console.log(`assignHero tx: ${txSign} `);
 
     return await this.deity();
   }

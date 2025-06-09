@@ -3,8 +3,11 @@ using System.Collections;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Connectors;
+using Model;
 using Solana.Unity.SDK;
+using Solana.Unity.Wallet;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,6 +23,10 @@ namespace View.UI
         public InputField symbolInput;
         public InputField descriptionInput;
         [Inject] private TokenConnector _token;
+
+        [Inject] private SmartObjectLocationConnector _loc;
+        [Inject] private PlayerHeroModel _hero;
+        [Inject] private SmartObjectTokenLauncherConnector _tokenLauncher;
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -103,11 +110,12 @@ namespace View.UI
                 Debug.LogError("Texture load failed.");
             }
         }
-        
-        
+
+
         public void OnSubmit()
         {
             StartCoroutine(UploadImageAndMetadataV3());
+            // CreateTokenAndSmartObject(null, null, null);
         }
 
         private IEnumerator UploadImageAndMetadataV3()
@@ -139,7 +147,62 @@ namespace View.UI
             yield return UploadFileToPinataV3(metadataBytes, "metadata.json", "application/json",
                 cid => metadataIpfsUrl = cid);
 
-            _ = _token.CreateToken(metadataIpfsUrl);
+            _ = CreateTokenAndSmartObject(metadata.name, metadata.symbol, metadataIpfsUrl);
+        }
+
+        private async Task CreateTokenAndSmartObject(string metadataName, string metadataSymbol, string metadataIpfsUrl)
+        {
+            var mint =  await _token.CreateToken(metadataName, metadataSymbol, metadataIpfsUrl);
+            try
+            {
+                await _loc.SetSeed($"TL@{_hero.Get().X}x{_hero.Get().Y}");
+                await _loc.Init(_hero.Get().X, _hero.Get().Y);
+
+                await _tokenLauncher.SetEntityPda(_loc.EntityPda);
+                await _tokenLauncher.Init(mint);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            /*
+             *
+             *
+
+               const smartObjectEntity = await AddEntity({
+                 payer: this.provider.wallet.publicKey,
+                 world: this.worldPda,
+                 connection: this.provider.connection,
+                 seed: new Uint8Array(Buffer.from("hots_smart_object_test2"))
+               });
+
+               this.smartObjectLocationComponent = anchor.workspace.SmartObjectLocation as Program<SmartObjectLocation>;
+               this.smartObjectDeityComponent = anchor.workspace.SmartObjectDeity as Program<SmartObjectDeity>;
+
+               let txSign = await this.provider.sendAndConfirm(smartObjectEntity.transaction);
+               this.entityPda = smartObjectEntity.entityPda;
+               console.log(`Initialized a new Entity (PDA=${smartObjectEntity.entityPda}). Initialization signature: ${txSign}`);
+
+               let initializeComponent = await InitializeComponent({
+                 payer: this.provider.wallet.publicKey,
+                 entity: this.entityPda,
+                 componentId: this.smartObjectLocationComponent.programId
+               });
+               txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
+               this.locationComponentPda = initializeComponent.componentPda;
+               console.log(`Initialized the smart object location component. Initialization signature: ${txSign}`);
+
+               initializeComponent = await InitializeComponent({
+                 payer: this.provider.wallet.publicKey,
+                 entity: this.entityPda,
+                 componentId: this.smartObjectDeityComponent.programId
+               });
+               txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
+               this.deityComponentPda = initializeComponent.componentPda;
+               console.log(`Initialized the smart object functional component. Initialization signature: ${txSign}`);
+
+
+             */
         }
 
         private IEnumerator UploadFileToPinataV3(byte[] fileData, string fileName, string contentType,
@@ -180,7 +243,7 @@ namespace View.UI
             }
 
             var cid = ExtractPinataCid(request.downloadHandler.text);
-            var ipfsUrl = $"ipfs://{cid}";
+            var ipfsUrl = $"https://gateway.pinata.cloud/ipfs/{cid}";
             Debug.Log($"✅ Uploaded to IPFS (v3): {ipfsUrl}");
 
             onSuccess?.Invoke(ipfsUrl);
@@ -205,7 +268,7 @@ namespace View.UI
         }
 
         [System.Serializable]
-        private class SolanaMetadata
+        public class SolanaMetadata
         {
             public string name;
             public string symbol;
@@ -214,15 +277,15 @@ namespace View.UI
             public MetadataProperties properties;
         }
 
-        [System.Serializable]
-        private class MetadataProperties
+        [Serializable]
+        public class MetadataProperties
         {
             public string category;
             public Creator[] creators;
         }
 
-        [System.Serializable]
-        private class Creator
+        [Serializable]
+        public class Creator
         {
             public string address;
             public int share;

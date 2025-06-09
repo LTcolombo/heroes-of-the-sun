@@ -8,8 +8,6 @@ using DeityBot;
 using DeityBot.Accounts;
 using Model;
 using Newtonsoft.Json;
-using Smartobjectdeity.Accounts;
-using Smartobjectlocation.Accounts;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
@@ -31,7 +29,7 @@ namespace Connectors
     
     
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public class SmartObjectDeityConnector : BaseComponentConnector<SmartObjectDeity>
+    public class SmartObjectDeityConnector : BaseComponentConnector<SmartObjectDeity.Accounts.SmartObjectDeity>
     {
         [Inject] private DialogInteractionStateModel _dialogInteractionState;
         
@@ -44,9 +42,9 @@ namespace Connectors
         public PublicKey OracleProgramId = new("LLMrieZMpbJFwN52WgmBNMxYojrpRVYXdC1RCweEbab");
         private AccountMeta[] _interactionAccounts;
 
-        protected override SmartObjectDeity DeserialiseBytes(byte[] value)
+        protected override SmartObjectDeity.Accounts.SmartObjectDeity DeserialiseBytes(byte[] value)
         {
-            return SmartObjectDeity.Deserialize(value);
+            return SmartObjectDeity.Accounts.SmartObjectDeity.Deserialize(value);
         }
 
         public override PublicKey GetComponentProgramAddress()
