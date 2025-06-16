@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
+using Solana.Unity.Rpc.Builders;
+using Solana.Unity.Programs;
+using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using UnityEditor;
@@ -13,6 +16,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using Utils.Injection;
+using Transaction = Solana.Unity.Rpc.Models.Transaction;
 
 namespace View.UI
 {
@@ -152,14 +156,41 @@ namespace View.UI
 
         private async Task CreateTokenAndSmartObject(string metadataName, string metadataSymbol, string metadataIpfsUrl)
         {
-            var mint =  await _token.CreateToken(metadataName, metadataSymbol, metadataIpfsUrl);
+            var mint = new Account();
+            
+            var minimumRent = await Web3.Rpc.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize);
+
+            var pda = Pda.GetMintAuthorityPDA(mint, new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap"));
+            
+            var transaction = new TransactionBuilder()
+                    .SetRecentBlockHash(await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false))
+                    .SetFeePayer(Web3.Account)
+                    .AddInstruction(
+                        SystemProgram.CreateAccount(
+                            Web3.Account,
+                            mint.PublicKey,
+                            minimumRent.Result,
+                            TokenProgram.MintAccountDataSize,
+                            TokenProgram.ProgramIdKey))
+                    .AddInstruction(
+                        TokenProgram.InitializeMint(
+                            mint.PublicKey,
+                            0,
+                            pda,
+                            pda))
+                ;
+
+            var tx = Transaction.Deserialize(transaction.Build(new List<Account> { Web3.Account, mint }));
+            var res = await Web3.Wallet.SignAndSendTransaction(tx);
+            Debug.Log(res.Result);
+
             try
             {
                 await _loc.SetSeed($"TL@{_hero.Get().X}x{_hero.Get().Y}");
                 await _loc.Init(_hero.Get().X, _hero.Get().Y);
 
                 await _tokenLauncher.SetEntityPda(_loc.EntityPda);
-                await _tokenLauncher.Init(mint);
+                await _tokenLauncher.Init(metadataName, metadataSymbol, metadataIpfsUrl, mint);
             }
             catch (Exception e)
             {

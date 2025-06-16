@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Model;
@@ -23,7 +24,6 @@ using Utils.Injection;
 
 namespace Connectors
 {
-
     [Singleton]
     public class TokenConnector : InjectableObject
     {
@@ -39,7 +39,7 @@ namespace Connectors
                 .DeriveAssociatedTokenAccount(Web3.Account, new PublicKey(TokenMintPda));
 
 
-        private string AssociatedTokenAccountSession
+        public string AssociatedTokenAccountSession
         {
             get
             {
@@ -66,6 +66,31 @@ namespace Connectors
                 Commitment.Processed);
         }
 
+        public AccountMeta[] GetCreateExtraAccounts(PublicKey mint, PublicKey system)
+        {
+            var authority = Web3Utils.SessionToken == null
+                ? Web3.Wallet.Account
+                : Web3Utils.SessionWallet.Account;
+
+            var extraAccounts = new List<AccountMeta>
+            {
+                AccountMeta.Writable(authority, true),
+                AccountMeta.Writable(mint, false),
+                AccountMeta.Writable(PDALookup.FindMetadataPDA(mint), false),
+                AccountMeta.Writable(Pda.GetMintAuthorityPDA(mint, system), false),
+                AccountMeta.ReadOnly(TokenProgram.ProgramIdKey, false),
+                AccountMeta.ReadOnly(MetadataProgram.ProgramIdKey, false),
+                AccountMeta.ReadOnly(SystemProgram.ProgramIdKey, false),
+                AccountMeta.ReadOnly(new PublicKey("SysvarRent111111111111111111111111111111111"), false),
+            };
+
+            if (Web3Utils.SessionWallet?.SessionTokenPDA != null)
+            {
+                extraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
+            }
+
+            return extraAccounts.ToArray();
+        }
 
         public AccountMeta[] GetMintExtraAccounts()
         {
@@ -110,97 +135,18 @@ namespace Connectors
             };
         }
 
-        public async Task<PublicKey> CreateToken(string name, string symbol, string metadataUrl)
-        {
-            var mint = new Account();
-            var associatedTokenAccount = AssociatedTokenAccountProgram
-                .DeriveAssociatedTokenAccount(Web3.Account, mint.PublicKey);
-
-            var metadata = new Metadata()
-            {
-                name = name,
-                symbol = symbol,
-                uri = metadataUrl,
-                sellerFeeBasisPoints = 0,
-                creators = new List<Creator> { new(Web3.Account.PublicKey, 100, true) }
-            };
-
-            var minimumRent = await Web3.Rpc.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize);
-
-
-            var transaction = new TransactionBuilder()
-                .SetRecentBlockHash(await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false))
-                .SetFeePayer(Web3.Account)
-                .AddInstruction(
-                    SystemProgram.CreateAccount(
-                        Web3.Account,
-                        mint.PublicKey,
-                        minimumRent.Result,
-                        TokenProgram.MintAccountDataSize,
-                        TokenProgram.ProgramIdKey))
-                .AddInstruction(
-                    TokenProgram.InitializeMint(
-                        mint.PublicKey,
-                        0,
-                        Web3.Account,
-                        Web3.Account))
-                .AddInstruction(
-                    AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                        Web3.Account,
-                        Web3.Account,
-                        mint.PublicKey))
-                .AddInstruction(
-                    TokenProgram.MintTo(
-                        mint.PublicKey,
-                        associatedTokenAccount,
-                        1,
-                        Web3.Account))
-                .AddInstruction(MetadataProgram.CreateMetadataAccount(
-                    PDALookup.FindMetadataPDA(mint),
-                    mint.PublicKey,
-                    Web3.Account,
-                    Web3.Account,
-                    Web3.Account.PublicKey,
-                    metadata,
-                    TokenStandard.NonFungible,
-                    true,
-                    true,
-                    null,
-                    metadataVersion: MetadataVersion.V3))
-                .AddInstruction(MetadataProgram.CreateMasterEdition(
-                        maxSupply: null,
-                        masterEditionKey: PDALookup.FindMasterEditionPDA(mint),
-                        mintKey: mint,
-                        updateAuthorityKey: Web3.Account,
-                        mintAuthority: Web3.Account,
-                        payer: Web3.Account,
-                        metadataKey: PDALookup.FindMetadataPDA(mint),
-                        version: CreateMasterEditionVersion.V3
-                    )
-                );
-
-            var tx = Transaction.Deserialize(transaction.Build(new List<Account> { Web3.Account, mint }));
-            var res = await Web3.Wallet.SignAndSendTransaction(tx);
-            Debug.Log(res.Result);
-            Debug.Log("mint: " + mint.PublicKey);
-            
-            return mint.PublicKey;
-        }
-
         public async Task<MetadataAccountV3> LoadMetadata(PublicKey mintAddress)
         {
             var metadataPda = PDALookup.FindMetadataPDA(mintAddress);
-            
+
             var metadataAccountInfo = await Web3.Rpc.GetAccountInfoAsync(metadataPda);
             if (!metadataAccountInfo.WasSuccessful || metadataAccountInfo.Result?.Value?.Data == null)
             {
                 throw new Exception("Unable to fetch metadata account");
             }
-            
+
             var rawData = Convert.FromBase64String(metadataAccountInfo.Result.Value.Data[0]);
             return MetadataAccountV3.Deserialize(rawData);
         }
-        
-        
     }
 }
