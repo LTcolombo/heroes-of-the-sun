@@ -1,3 +1,4 @@
+mod errors;
 use bolt_lang::*;
 
 declare_id!("64Uk4oF6mNyviUdK2xHXE3VMCtbCMDgRr1DMJk777DJZ");
@@ -11,6 +12,10 @@ pub mod smart_object_init {
         let smart_object_location = &mut ctx.accounts.smart_object_location;
 
         //cant init twice?
+
+        if smart_object_location.entity != Pubkey::default() {
+            return err!(errors::SmartObjectInitError::AlreadyInitialized);
+        }
 
         smart_object_location.x = args.x;
         smart_object_location.y = args.y;
@@ -27,7 +32,7 @@ pub mod smart_object_init {
     struct SmartObjectInitArgs {
         pub x: i32,
         pub y: i32,
-        
+
         pub entity: [u8; 32],
     }
 }

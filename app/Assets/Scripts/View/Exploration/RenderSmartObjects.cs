@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
+using Notifications;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using UnityEngine;
@@ -14,10 +16,18 @@ namespace View.Exploration
     {
         [Inject] private PathfindingModel _pathfinding;
         [Inject] private SmartObjectLocationConnector _connector;
+        
+        [Inject] private RedrawSmartObjects _redraw;
 
         [SerializeField] private RenderSmartObject prefab;
 
         private void Start()
+        {
+            _ = Redraw();
+            _redraw.Add(OnRedrawRequest);
+        }
+
+        private void OnRedrawRequest()
         {
             _ = Redraw();
         }
@@ -38,6 +48,11 @@ namespace View.Exploration
                 var renderSmartObject = Instantiate(prefab, transform);
                 await renderSmartObject.SetDataAddress(account.PublicKey);
             }
+        }
+
+        private void OnDestroy()
+        {
+            _redraw.Remove(OnRedrawRequest);
         }
     }
 }

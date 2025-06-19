@@ -8,6 +8,7 @@ using Solana.Unity.Wallet;
 using TMPro;
 using UnityEngine;
 using Utils.Injection;
+using View.UI;
 
 namespace View.Exploration
 {
@@ -25,6 +26,7 @@ namespace View.Exploration
         [Inject] private RequestInteractionWithSmartObject _interact;
 
         [SerializeField] private TMP_Text keyLabel;
+        [SerializeField] private DisplayBackpack backpack;
 
         private LineRenderer _line;
 
@@ -55,6 +57,12 @@ namespace View.Exploration
             {
                 _playerHero.Set(_data);
                 gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(value);
+
+                backpack.gameObject.SetActive(true);
+            }
+            else
+            {
+                backpack.gameObject.SetActive(false);
             }
 
 

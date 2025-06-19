@@ -6,11 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
+using Notifications;
 using Solana.Unity.Rpc.Builders;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,17 +22,36 @@ using Transaction = Solana.Unity.Rpc.Models.Transaction;
 
 namespace View.UI
 {
+    
     public class ManageTokenCreation : InjectableBehaviour
     {
-        public Image icon;
-        public InputField nameInput;
-        public InputField symbolInput;
-        public InputField descriptionInput;
+        [SerializeField] private Image icon;
+        [SerializeField] private InputField nameInput;
+        [SerializeField] private InputField symbolInput;
+        [SerializeField] private InputField descriptionInput;
+        
+        [SerializeField] private GameObject submitButton;
+        
+        [SerializeField] private GameObject progressContainer;
+        [SerializeField] private Text progressLabel;
+        [SerializeField] private Image progressBar;
+        
         [Inject] private TokenConnector _token;
 
         [Inject] private SmartObjectLocationConnector _loc;
         [Inject] private PlayerHeroModel _hero;
         [Inject] private SmartObjectTokenLauncherConnector _tokenLauncher;
+        
+        [Inject] private RedrawSmartObjects _redrawSmartObjects;
+
+        enum TokenCreationSteps
+        {
+            ImageUpload,
+            MetadataUpload,
+            MintCreation,
+            SmartObjectCreation,
+            TokenLauncherInitialisation
+        }
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -44,12 +65,11 @@ namespace View.UI
 
         private const string PinataV3UploadUrl = "https://uploads.pinata.cloud/v3/files";
 
-        [SerializeField] private Sprite[] icons;
-        private int _index;
 
         private void OnEnable()
         {
-            _index = 0;
+            submitButton.SetActive(true);
+            progressContainer.SetActive(false);
         }
 
         public void OpenImage()
@@ -118,12 +138,16 @@ namespace View.UI
 
         public void OnSubmit()
         {
+            submitButton.SetActive(false);
+            progressContainer.SetActive(true);
+            
             StartCoroutine(UploadImageAndMetadataV3());
-            // CreateTokenAndSmartObject(null, null, null);
         }
 
         private IEnumerator UploadImageAndMetadataV3()
         {
+            SetProgressStep(TokenCreationSteps.ImageUpload);
+            
             var texture = icon.sprite.texture;
             var pngData = texture.EncodeToPNG();
             string imageIpfsUrl = null;
@@ -145,6 +169,8 @@ namespace View.UI
                 }
             };
 
+            SetProgressStep(TokenCreationSteps.MetadataUpload);
+            
             var metadataJson = JsonUtility.ToJson(metadata, true);
             var metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
             string metadataIpfsUrl = null;
@@ -154,8 +180,25 @@ namespace View.UI
             _ = CreateTokenAndSmartObject(metadata.name, metadata.symbol, metadataIpfsUrl);
         }
 
+        private void SetProgressStep(TokenCreationSteps value)
+        {
+            progressLabel.text = value switch
+            {
+                TokenCreationSteps.ImageUpload => "Uploading image to IPFS..",
+                TokenCreationSteps.MetadataUpload => "Uploading Metadata to IPFS..",
+                TokenCreationSteps.MintCreation => "Creating Mint Account",
+                TokenCreationSteps.SmartObjectCreation => "Creating Smart Object..",
+                TokenCreationSteps.TokenLauncherInitialisation => "Initialising Token Launcher..",
+                _ => "..."
+            };
+
+            progressBar.fillAmount = (float)value / Enum.GetValues(typeof(TokenCreationSteps)).Length;
+        }
+
         private async Task CreateTokenAndSmartObject(string metadataName, string metadataSymbol, string metadataIpfsUrl)
         {
+            SetProgressStep(TokenCreationSteps.MintCreation);
+            
             var mint = new Account();
             
             var minimumRent = await Web3.Rpc.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize);
@@ -186,54 +229,24 @@ namespace View.UI
 
             try
             {
+                SetProgressStep(TokenCreationSteps.SmartObjectCreation);
                 await _loc.SetSeed($"TL@{_hero.Get().X}x{_hero.Get().Y}");
                 await _loc.Init(_hero.Get().X, _hero.Get().Y);
 
+                SetProgressStep(TokenCreationSteps.TokenLauncherInitialisation);
+                
                 await _tokenLauncher.SetEntityPda(_loc.EntityPda);
+                
                 await _tokenLauncher.Init(metadataName, metadataSymbol, metadataIpfsUrl, mint);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-            /*
-             *
-             *
-
-               const smartObjectEntity = await AddEntity({
-                 payer: this.provider.wallet.publicKey,
-                 world: this.worldPda,
-                 connection: this.provider.connection,
-                 seed: new Uint8Array(Buffer.from("hots_smart_object_test2"))
-               });
-
-               this.smartObjectLocationComponent = anchor.workspace.SmartObjectLocation as Program<SmartObjectLocation>;
-               this.smartObjectDeityComponent = anchor.workspace.SmartObjectDeity as Program<SmartObjectDeity>;
-
-               let txSign = await this.provider.sendAndConfirm(smartObjectEntity.transaction);
-               this.entityPda = smartObjectEntity.entityPda;
-               console.log(`Initialized a new Entity (PDA=${smartObjectEntity.entityPda}). Initialization signature: ${txSign}`);
-
-               let initializeComponent = await InitializeComponent({
-                 payer: this.provider.wallet.publicKey,
-                 entity: this.entityPda,
-                 componentId: this.smartObjectLocationComponent.programId
-               });
-               txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
-               this.locationComponentPda = initializeComponent.componentPda;
-               console.log(`Initialized the smart object location component. Initialization signature: ${txSign}`);
-
-               initializeComponent = await InitializeComponent({
-                 payer: this.provider.wallet.publicKey,
-                 entity: this.entityPda,
-                 componentId: this.smartObjectDeityComponent.programId
-               });
-               txSign = await this.provider.sendAndConfirm(initializeComponent.transaction);
-               this.deityComponentPda = initializeComponent.componentPda;
-               console.log(`Initialized the smart object functional component. Initialization signature: ${txSign}`);
-
-
-             */
+            
+            gameObject.SetActive(false);
+            
+            _redrawSmartObjects.Dispatch();
         }
 
         private IEnumerator UploadFileToPinataV3(byte[] fileData, string fileName, string contentType,
