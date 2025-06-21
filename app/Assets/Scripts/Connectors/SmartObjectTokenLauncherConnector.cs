@@ -26,11 +26,13 @@ namespace Connectors
             return new PublicKey("8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3");
         }
 
-        public async Task<bool> Init(string token_name, string token_symbol, string token_uri, PublicKey mintPublicKey)
+        public async Task<bool> Init(string token_name, string token_symbol, string token_uri, PublicKey mintPublicKey,
+            ushort recipe_food, ushort recipe_water, ushort recipe_wood, ushort recipe_stone)
         {
             var systemAddress = new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap");
             return await ApplySystem(systemAddress,
-                new { token_name, token_symbol, token_uri }, null, true,
+                new { token_name, token_symbol, token_uri, recipe_food, recipe_water, recipe_wood, recipe_stone }, null,
+                true,
                 _token.GetCreateExtraAccounts(mintPublicKey, systemAddress));
         }
 

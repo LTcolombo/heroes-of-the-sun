@@ -22,27 +22,35 @@ using Transaction = Solana.Unity.Rpc.Models.Transaction;
 
 namespace View.UI
 {
-    
     public class ManageTokenCreation : InjectableBehaviour
     {
         [SerializeField] private Image icon;
         [SerializeField] private InputField nameInput;
         [SerializeField] private InputField symbolInput;
         [SerializeField] private InputField descriptionInput;
-        
-        [SerializeField] private GameObject submitButton;
-        
+
+        [SerializeField] private Text recipeFood;
+        [SerializeField] private Text recipeWater;
+        [SerializeField] private Text recipeWood;
+        [SerializeField] private Text recipeStone;
+
+        [SerializeField] private Button submitButton;
+
         [SerializeField] private GameObject progressContainer;
         [SerializeField] private Text progressLabel;
         [SerializeField] private Image progressBar;
-        
+
         [Inject] private TokenConnector _token;
 
         [Inject] private SmartObjectLocationConnector _loc;
         [Inject] private PlayerHeroModel _hero;
         [Inject] private SmartObjectTokenLauncherConnector _tokenLauncher;
-        
+
         [Inject] private RedrawSmartObjects _redrawSmartObjects;
+        private ushort _recipeFoodValue;
+        private ushort _recipeWaterValue;
+        private ushort _recipeWoodValue;
+        private ushort _recipeStoneValue;
 
         enum TokenCreationSteps
         {
@@ -68,7 +76,7 @@ namespace View.UI
 
         private void OnEnable()
         {
-            submitButton.SetActive(true);
+            submitButton.gameObject.SetActive(true);
             progressContainer.SetActive(false);
         }
 
@@ -136,18 +144,62 @@ namespace View.UI
         }
 
 
+        public void OnRecipeChange()
+        {
+            if (!ushort.TryParse(recipeFood.text, out _recipeFoodValue) ||
+                !ushort.TryParse(recipeWater.text, out _recipeWaterValue) ||
+                !ushort.TryParse(recipeWood.text, out _recipeWoodValue) ||
+                !ushort.TryParse(recipeStone.text, out _recipeStoneValue))
+            {
+                submitButton.interactable = false;
+                return;
+            }
+
+            if (_recipeFoodValue > _hero.Get().Backpack.Food)
+            {
+                _recipeFoodValue = _hero.Get().Backpack.Food;
+                recipeFood.text = _recipeFoodValue.ToString();
+            }
+            
+            if (_recipeWaterValue > _hero.Get().Backpack.Water)
+            {
+                _recipeWaterValue = _hero.Get().Backpack.Water;
+                recipeWater.text = _recipeWaterValue.ToString();
+            }
+            
+            if (_recipeWoodValue > _hero.Get().Backpack.Wood)
+            {
+                _recipeWoodValue = _hero.Get().Backpack.Wood;
+                recipeWood.text = _recipeWoodValue.ToString();
+            }
+            
+            if (_recipeStoneValue > _hero.Get().Backpack.Stone)
+            {
+                _recipeStoneValue = _hero.Get().Backpack.Stone;
+                recipeStone.text = _recipeStoneValue.ToString();
+            }
+
+            if (_recipeFoodValue + _recipeWaterValue + _recipeWoodValue + _recipeStoneValue == 0)
+            {
+                submitButton.interactable = false;
+                return;
+            }
+
+            submitButton.interactable = true;
+        }
+
         public void OnSubmit()
         {
-            submitButton.SetActive(false);
+            submitButton.gameObject.SetActive(false);
             progressContainer.SetActive(true);
-            
+
             StartCoroutine(UploadImageAndMetadataV3());
         }
 
         private IEnumerator UploadImageAndMetadataV3()
         {
             SetProgressStep(TokenCreationSteps.ImageUpload);
-            
+
             var texture = icon.sprite.texture;
             var pngData = texture.EncodeToPNG();
             string imageIpfsUrl = null;
@@ -170,7 +222,7 @@ namespace View.UI
             };
 
             SetProgressStep(TokenCreationSteps.MetadataUpload);
-            
+
             var metadataJson = JsonUtility.ToJson(metadata, true);
             var metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
             string metadataIpfsUrl = null;
@@ -198,13 +250,13 @@ namespace View.UI
         private async Task CreateTokenAndSmartObject(string metadataName, string metadataSymbol, string metadataIpfsUrl)
         {
             SetProgressStep(TokenCreationSteps.MintCreation);
-            
+
             var mint = new Account();
-            
+
             var minimumRent = await Web3.Rpc.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize);
 
             var pda = Pda.GetMintAuthorityPDA(mint, new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap"));
-            
+
             var transaction = new TransactionBuilder()
                     .SetRecentBlockHash(await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false))
                     .SetFeePayer(Web3.Account)
@@ -234,18 +286,19 @@ namespace View.UI
                 await _loc.Init(_hero.Get().X, _hero.Get().Y);
 
                 SetProgressStep(TokenCreationSteps.TokenLauncherInitialisation);
-                
+
                 await _tokenLauncher.SetEntityPda(_loc.EntityPda);
-                
-                await _tokenLauncher.Init(metadataName, metadataSymbol, metadataIpfsUrl, mint);
+
+                await _tokenLauncher.Init(metadataName, metadataSymbol, metadataIpfsUrl, mint, _recipeFoodValue,
+                    _recipeWaterValue, _recipeWoodValue, _recipeStoneValue);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-            
+
             gameObject.SetActive(false);
-            
+
             _redrawSmartObjects.Dispatch();
         }
 

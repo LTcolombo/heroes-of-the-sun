@@ -14,6 +14,7 @@ pub mod smart_object_token_launcher_init {
         },
         token::{self, spl_token::instruction::AuthorityType, SetAuthority},
     };
+    use settlement::ResourceBalance;
     use smart_object_token_launcher::SmartObjectTokenLauncher;
 
     pub fn execute(
@@ -140,6 +141,19 @@ pub mod smart_object_token_launcher_init {
         launcher.mint = mint_account_key;
         msg!("mint_account_key {}", mint_account_key);
         msg!("launcher.mint {}", launcher.mint);
+        msg!("Set launcher mint: {}", launcher.mint);
+
+        launcher.recipe = ResourceBalance {
+            water: args.recipe_water,
+            food: args.recipe_food,
+            wood: args.recipe_wood,
+            stone: args.recipe_stone,
+        };
+        msg!("Set recipe: water={} food={} wood={} stone={}", args.recipe_water, args.recipe_food, args.recipe_wood, args.recipe_stone);
+        msg!("launcher.recipe.water: {}", launcher.recipe.water);
+        msg!("launcher.recipe.food: {}", launcher.recipe.food);
+        msg!("launcher.recipe.wood: {}", launcher.recipe.wood);
+        msg!("launcher.recipe.stone: {}", launcher.recipe.stone);
         Ok(ctx.accounts)
     }
 
@@ -153,6 +167,11 @@ pub mod smart_object_token_launcher_init {
         pub token_name: String,
         pub token_symbol: String,
         pub token_uri: String,
+
+        pub recipe_food: u16,
+        pub recipe_water: u16,
+        pub recipe_wood: u16,
+        pub recipe_stone: u16,
     }
 
     #[extra_accounts]

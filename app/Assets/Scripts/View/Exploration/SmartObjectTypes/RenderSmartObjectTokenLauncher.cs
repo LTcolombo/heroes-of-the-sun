@@ -79,7 +79,7 @@ namespace View.Exploration.SmartObjectTypes
                 Debug.Log("_data.Mint: " + _data.Mint);
                 var data = await _token.LoadMetadata(_data.Mint);
                 _cid = data.Uri.Split('/').Last();
-                tokenInfo.SetData(data);
+                tokenInfo.SetData(data, _data.Recipe);
             }
             catch (Exception e)
             {

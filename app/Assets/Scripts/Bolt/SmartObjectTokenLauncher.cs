@@ -55,6 +55,8 @@ namespace Smartobjecttokenlauncher
 
             public PublicKey Mint { get; set; }
 
+            public ResourceBalance Recipe { get; set; }
+
             public BoltMetadata BoltMetadata { get; set; }
 
             public static SmartObjectTokenLauncher Deserialize(ReadOnlySpan<byte> _data)
@@ -72,6 +74,8 @@ namespace Smartobjecttokenlauncher
                 offset += 32;
                 result.Mint = _data.GetPubKey(offset);
                 offset += 32;
+                offset += ResourceBalance.Deserialize(_data, offset, out var resultRecipe);
+                result.Recipe = resultRecipe;
                 offset += BoltMetadata.Deserialize(_data, offset, out var resultBoltMetadata);
                 result.BoltMetadata = resultBoltMetadata;
                 return result;
@@ -106,6 +110,46 @@ namespace Smartobjecttokenlauncher
                 result = new BoltMetadata();
                 result.Authority = _data.GetPubKey(offset);
                 offset += 32;
+                return offset - initialOffset;
+            }
+        }
+
+        public partial class ResourceBalance
+        {
+            public ushort Food { get; set; }
+
+            public ushort Water { get; set; }
+
+            public ushort Wood { get; set; }
+
+            public ushort Stone { get; set; }
+
+            public int Serialize(byte[] _data, int initialOffset)
+            {
+                int offset = initialOffset;
+                _data.WriteU16(Food, offset);
+                offset += 2;
+                _data.WriteU16(Water, offset);
+                offset += 2;
+                _data.WriteU16(Wood, offset);
+                offset += 2;
+                _data.WriteU16(Stone, offset);
+                offset += 2;
+                return offset - initialOffset;
+            }
+
+            public static int Deserialize(ReadOnlySpan<byte> _data, int initialOffset, out ResourceBalance result)
+            {
+                int offset = initialOffset;
+                result = new ResourceBalance();
+                result.Food = _data.GetU16(offset);
+                offset += 2;
+                result.Water = _data.GetU16(offset);
+                offset += 2;
+                result.Wood = _data.GetU16(offset);
+                offset += 2;
+                result.Stone = _data.GetU16(offset);
+                offset += 2;
                 return offset - initialOffset;
             }
         }

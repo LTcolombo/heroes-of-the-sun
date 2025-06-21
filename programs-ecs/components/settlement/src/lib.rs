@@ -16,10 +16,10 @@ pub struct ResourceBalance {
 impl Default for ResourceBalance {
     fn default() -> Self {
         ResourceBalance {
-            food: 0,
-            water: 0,
-            wood: 0,
-            stone: 0,
+            food: 1,
+            water: 1,
+            wood: 1,
+            stone: 1,
         }
     }
 }

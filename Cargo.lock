@@ -2669,6 +2669,7 @@ version = "0.1.8"
 dependencies = [
  "anchor-lang",
  "bolt-lang 0.1.12",
+ "settlement",
 ]
 
 [[package]]
@@ -2679,6 +2680,7 @@ dependencies = [
  "anchor-spl",
  "bolt-lang 0.2.2",
  "serde",
+ "settlement",
  "smart-object-token-launcher",
 ]
 

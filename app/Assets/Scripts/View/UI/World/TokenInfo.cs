@@ -1,4 +1,5 @@
 using System.Collections;
+using Smartobjecttokenlauncher.Types;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -13,10 +14,24 @@ namespace View.UI.World
         [SerializeField] TMP_Text nameText;
         [SerializeField] TMP_Text descText;
         [SerializeField] Image iconImage;
+        
+        [SerializeField] private TMP_Text resourceFood;
+        [SerializeField] private TMP_Text resourceWood;
+        [SerializeField] private TMP_Text resourceWater;
+        [SerializeField] private TMP_Text resourceStone;
 
-        public void SetData(MetadataAccountV3 value)
+        public void SetData(MetadataAccountV3 value, ResourceBalance cost)
         {
             StartCoroutine(LoadMetadata(value.Uri));
+
+            if (cost != null)
+            {
+                resourceFood.text = $"x{cost.Food}";
+                resourceWood.text = $"x{cost.Wood}";
+                resourceWater.text = $"x{cost.Water}";
+                resourceStone.text = $"x{cost.Stone}";
+            }
+            
         }
 
         private IEnumerator LoadMetadata(string url)

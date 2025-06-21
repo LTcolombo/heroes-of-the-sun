@@ -41,4 +41,4 @@ extend:
 	- exec solana program extend C2H1sb7ZVpgEZFWqXujRK3rx5C2543GNN251wmgfbhUH 50000
 
 idl:
-	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster d
+	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster l
