@@ -71,6 +71,7 @@ namespace Connectors
         public async UniTask SetEntityPda(string value, bool forceCreateEntity = true)
         {
             _entityPda = value;
+            Debug.Log("SetEntityPda: " + _entityPda);
             await AcquireComponentDataAddress(forceCreateEntity);
         }
 
@@ -78,6 +79,7 @@ namespace Connectors
         public void SetDataAddress(string value)
         {
             _dataAddress = value;
+            Debug.Log("SetDataAddress: " + _dataAddress);
         }
 
 
@@ -185,7 +187,7 @@ namespace Connectors
 
             if (_dataAddress == null)
             {
-                var entityState = await RpcClient.GetAccountInfoAsync(_entityPda);
+                var entityState = await RpcClient.GetAccountInfoAsync(_entityPda, Commitment.Processed);
                 if (entityState.Result.Value == null)
                 {
                     if (!forceCreateEntity)
@@ -196,7 +198,7 @@ namespace Connectors
                         while (entityState.Result.Value == null)
                         {
                             await Task.Delay(2000);
-                            entityState = await RpcClient.GetAccountInfoAsync(_entityPda);
+                            entityState = await RpcClient.GetAccountInfoAsync(_entityPda, Commitment.Processed);
                         }
                     }
                     else
@@ -224,7 +226,7 @@ namespace Connectors
 
                 var dataAddress = Pda.FindComponentPda(new(_entityPda), GetComponentProgramAddress());
 
-                var componentDataState = await RpcClient.GetAccountInfoAsync(dataAddress);
+                var componentDataState = await RpcClient.GetAccountInfoAsync(dataAddress, Commitment.Processed);
                 if (componentDataState.Result.Value == null)
                 {
                     var tx = new Transaction

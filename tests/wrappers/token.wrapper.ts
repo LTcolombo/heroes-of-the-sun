@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { AccountMeta, PublicKey } from "@solana/web3.js";
 import {
+  FindComponentPda,
   InitializeNewWorld,
 } from "@magicblock-labs/bolt-sdk"
 
@@ -48,6 +49,8 @@ export class TokenWrapper {
 
   }
 
+
+
   async createToken() {
     console.log("recent blockhash", await this.program.provider.connection.getLatestBlockhashAndContext());
     const transactionSignature = await this.program.methods
@@ -67,6 +70,58 @@ export class TokenWrapper {
     return await this.provider.connection.getTokenAccountBalance(this.associatedTokenAccountAddress)
   }
 
+  getCreateExtraAccounts(mint: anchor.web3.Keypair, system: PublicKey): anchor.web3.AccountMeta[] {
+
+    const metadataPda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").toBytes(),
+        mint.publicKey.toBytes()
+      ], new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
+    )[0];
+
+    const authorityPda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("authority"),
+        new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").toBytes(),
+        mint.publicKey.toBytes()
+      ], system
+    )[0];
+
+
+    return [
+      {
+        pubkey: mint.publicKey,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: metadataPda,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: authorityPda,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false
+      },
+      {
+        pubkey: new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+        isSigner: false,
+        isWritable: false
+      },
+      {
+        pubkey: SYSTEM_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false
+      }
+    ];
+  }
 
   getMintExtraAccounts(): AccountMeta[] {
     return [

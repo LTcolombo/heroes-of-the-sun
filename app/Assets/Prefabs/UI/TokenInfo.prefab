@@ -534,6 +534,10 @@ MonoBehaviour:
   nameText: {fileID: 8061171276310189336}
   descText: {fileID: 3169863803476516124}
   iconImage: {fileID: 3131387478401793915}
+  resourceFood: {fileID: 6376058580076229202}
+  resourceWood: {fileID: 8161102480907985196}
+  resourceWater: {fileID: 2594322653760925892}
+  resourceStone: {fileID: 1620823015053884759}
 --- !u!1 &1376600695738792823
 GameObject:
   m_ObjectHideFlags: 0

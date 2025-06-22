@@ -78,6 +78,8 @@ namespace View.UI
         {
             submitButton.gameObject.SetActive(true);
             progressContainer.SetActive(false);
+            
+            OnRecipeChange();
         }
 
         public void OpenImage()

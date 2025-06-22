@@ -139,7 +139,7 @@ namespace Connectors
         {
             var metadataPda = PDALookup.FindMetadataPDA(mintAddress);
 
-            var metadataAccountInfo = await Web3.Rpc.GetAccountInfoAsync(metadataPda);
+            var metadataAccountInfo = await Web3.Rpc.GetAccountInfoAsync(metadataPda, Commitment.Processed);
             if (!metadataAccountInfo.WasSuccessful || metadataAccountInfo.Result?.Value?.Data == null)
             {
                 throw new Exception("Unable to fetch metadata account");

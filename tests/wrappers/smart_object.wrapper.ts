@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { AccountMeta, Keypair, PublicKey } from "@solana/web3.js";
 import {
   AddEntity,
   ApplySystem,
@@ -11,6 +11,7 @@ import { SmartObjectDeity } from "../../target/types/smart_object_deity";
 import { SmartObjectInit } from "../../target/types/smart_object_init";
 import { SmartObjectTokenLauncherInit } from "../../target/types/smart_object_token_launcher_init";
 import { Smartobjecttokenlauncher } from "../../target/types/smartobjecttokenlauncher";
+import { TokenWrapper } from "./token.wrapper";
 
 
 
@@ -22,7 +23,13 @@ export type SmartObjectInitArgs = {
 
 
 export type SmartObjectTokenLauncherInitArgs = {
-  mint: number[]
+  token_name: string,
+  token_symbol: string,
+  token_uri: string,
+  recipe_food: number,
+  recipe_water: number,
+  recipe_wood: number,
+  recipe_stone: number
 }
 
 export type DeityInteractionArgs = {
@@ -90,7 +97,7 @@ export class SmartObjectWrapper {
     console.log(`Initialized the smart object Deity component. Initialization signature: ${txSign}`);
   }
 
-  async InitTokenLauncher() {
+  async createTokenLauncherComponent() {
 
     const initializeComponent = await InitializeComponent({
       payer: this.provider.wallet.publicKey,
@@ -116,21 +123,31 @@ export class SmartObjectWrapper {
     return await this.smartObjectTokenLauncherComponent.account.smartObjectTokenLauncher.fetch(this.tokenLauncherComponentPda);
   }
 
-  async setTokenMint(args: SmartObjectTokenLauncherInitArgs) {
+  async initTokenLauncher(args: SmartObjectTokenLauncherInitArgs) {
     // Run the build system
 
+    const systemId = (anchor.workspace.SmartObjectTokenLauncherInit as Program<SmartObjectTokenLauncherInit>).programId;
+    const token = new TokenWrapper();
+    const extraAccounts = token.getCreateExtraAccounts(Keypair.generate(), systemId);
 
-    console.log("setTokenMint");
+    console.log("initTokenLauncher");
 
     const applySystem = await ApplySystem({
       world: this.worldPda,
       authority: this.provider.wallet.publicKey,
-      systemId: (anchor.workspace.SmartObjectTokenLauncherInit as Program<SmartObjectTokenLauncherInit>).programId,
+      systemId: systemId,
       entities: [{
         entity: this.entityPda,
         components: [{ componentId: this.smartObjectTokenLauncherComponent.programId }],
       }],
-      args
+      args,
+      extraAccounts: [
+        {
+          pubkey: this.provider.wallet.publicKey,
+          isWritable: true,
+          isSigner: true,
+        },
+      ].concat(extraAccounts),
     });
 
     const txSign = await this.provider.sendAndConfirm(applySystem.transaction);

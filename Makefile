@@ -42,3 +42,4 @@ extend:
 
 idl:
 	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster l
+	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster l
