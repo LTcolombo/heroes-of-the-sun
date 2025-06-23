@@ -1,4 +1,5 @@
-use anchor_spl::associated_token::AssociatedToken;
+mod errors;
+
 use bolt_lang::*;
 
 declare_id!("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst");
@@ -36,9 +37,60 @@ pub mod smart_object_token_launcher_interact {
         msg!("token_program: {}", token_program.key);
 
         let launcher = &mut ctx.accounts.launcher;
-        // let hero = &mut ctx.accounts.hero;
+        let hero = &mut ctx.accounts.hero;
 
         let mint_account_key = mint_account.key();
+
+        if (launcher.mint != mint_account_key) {
+            return err!(errors::TokenLauncherInteractError::MintAddressMismatch);
+        }
+
+        //check positive balance
+
+        if launcher.recipe.food > 0 {
+            if hero.backpack.food < args.quantity * launcher.recipe.food as u16 {
+                return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
+            }
+        }
+
+        if launcher.recipe.water > 0 {
+            if hero.backpack.water < args.quantity * launcher.recipe.water as u16 {
+                return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
+            }
+        }
+
+        if launcher.recipe.wood > 0 {
+            if hero.backpack.wood < args.quantity * launcher.recipe.wood as u16 {
+                return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
+            }
+        }
+
+        if launcher.recipe.stone > 0 {
+            if hero.backpack.stone < args.quantity * launcher.recipe.stone as u16 {
+                return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
+            }
+        }
+
+        //subtract
+
+        hero.backpack.food = hero
+            .backpack
+            .food
+            .wrapping_sub(args.quantity * launcher.recipe.food);
+        hero.backpack.water = hero
+            .backpack
+            .water
+            .wrapping_sub(args.quantity * launcher.recipe.water);
+        hero.backpack.wood = hero
+            .backpack
+            .wood
+            .wrapping_sub(args.quantity * launcher.recipe.wood);
+        hero.backpack.stone = hero
+            .backpack
+            .stone
+            .wrapping_sub(args.quantity * launcher.recipe.stone);
+
+        //proceed to minting
 
         let (_, bump) = Pubkey::find_program_address(
             &[
@@ -77,12 +129,12 @@ pub mod smart_object_token_launcher_interact {
     #[system_input]
     pub struct Components {
         pub launcher: SmartObjectTokenLauncher,
-        // pub hero: Hero,
+        pub hero: Hero,
     }
 
     #[arguments]
     struct SmartObjectTokenLauncherInteractionArgs {
-        pub quantity: i16,
+        pub quantity: u16,
     }
 
     #[extra_accounts]
@@ -116,5 +168,3 @@ pub mod smart_object_token_launcher_interact {
         pub system_program: Program<'info, System>,
     }
 }
-
-

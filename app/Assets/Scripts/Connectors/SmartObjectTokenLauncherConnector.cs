@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Model;
 using Smartobjecttokenlauncher.Accounts;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Models;
@@ -15,6 +16,9 @@ namespace Connectors
     public class SmartObjectTokenLauncherConnector : BaseComponentConnector<SmartObjectTokenLauncher>
     {
         [Inject] private TokenConnector _token;
+        [Inject] private HeroConnector _hero;
+        [Inject] private PlayerHeroModel _playerHero;
+        [Inject] private PlayerConnector _player;
 
         protected override SmartObjectTokenLauncher DeserialiseBytes(byte[] value)
         {
@@ -38,11 +42,38 @@ namespace Connectors
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
         {
+            
+            //setup hero
+            _hero.SetDataAddress(
+                Pda.FindComponentPda(new(_player.EntityPda), _hero.GetComponentProgramAddress()));
+            await _hero.SetEntityPda(_player.EntityPda);
+
+            //undelegate
+            await _hero.Undelegate();
+
+            var systemAddress = new PublicKey("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst");
+
+            var result = await ApplySystem(systemAddress,
+                new { quantity }, new Dictionary<PublicKey, PublicKey>()
+                {
+                    {
+                        new PublicKey(_hero.EntityPda), _hero.GetComponentProgramAddress()
+                    }
+                }, false, GetMintExtraAccounts(systemAddress, mint));
+
+
+            //re-delegate
+            await _hero.Delegate();
+
+            return result;
+        }
+
+        private AccountMeta[] GetMintExtraAccounts(PublicKey systemAddress, PublicKey mint)
+        {
             var authority = Web3Utils.SessionToken == null
                 ? Web3.Wallet.Account
                 : Web3Utils.SessionWallet.Account;
 
-            var systemAddress = new PublicKey("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst");
             var mintExtraAccounts = new List<AccountMeta>
             {
                 AccountMeta.Writable(authority, true),
@@ -60,8 +91,7 @@ namespace Connectors
                 mintExtraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
             }
 
-            return await ApplySystem(systemAddress,
-                new { quantity }, null, false, mintExtraAccounts.ToArray());
+            return mintExtraAccounts.ToArray();
         }
     }
 }
