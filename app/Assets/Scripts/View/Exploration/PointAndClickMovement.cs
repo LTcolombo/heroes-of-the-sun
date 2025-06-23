@@ -1,6 +1,7 @@
 using System;
 using Connectors;
 using Model;
+using Notifications;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Utils.Injection;
@@ -12,6 +13,7 @@ namespace View.Exploration
         [Inject] private HeroConnector _connector;
         [Inject] private SmartObjectModel _smartObjects;
         [Inject] private GridInteractionStateModel _gridInteraction;
+        [Inject] private HideInteractionWithSmartObject _hideInteractionWithSmartObject;
 
         private float _mouseDownTime;
         private EventSystem _eventSystem;
@@ -51,7 +53,8 @@ namespace View.Exploration
                 
                 if (_smartObjects.HasSmartObjectAt(tileLocation))
                     tileLocation += Vector2Int.up; //should be the tile closer to the hero position
-                
+
+                _hideInteractionWithSmartObject.Dispatch();
                 _ = _connector.Move(tileLocation.x, tileLocation.y);
             }
         }
