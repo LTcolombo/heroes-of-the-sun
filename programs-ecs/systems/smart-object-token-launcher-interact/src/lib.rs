@@ -1,12 +1,15 @@
 mod errors;
 
+use anchor_spl::token::spl_token;
+use spl_token::state::Mint as SplMint;
+
 use bolt_lang::*;
 
 declare_id!("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst");
 
 #[system]
 pub mod smart_object_token_launcher_interact {
-    use anchor_spl::token::{mint_to, spl_token, MintTo};
+    use anchor_spl::token::{mint_to, spl_token, Mint, MintTo};
     use bolt_lang::solana_program::program_pack::Pack;
     use hero::Hero;
     use smart_object_token_launcher::SmartObjectTokenLauncher;
@@ -40,6 +43,14 @@ pub mod smart_object_token_launcher_interact {
         let hero = &mut ctx.accounts.hero;
 
         let mint_account_key = mint_account.key();
+
+        let mint_data = mint_account.data.borrow();
+
+        let mint = SplMint::unpack_unchecked(&mint_data[..])
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        drop(mint_data);
+
+        msg!("SUPPLY: {}", mint.supply);
 
         if (launcher.mint != mint_account_key) {
             return err!(errors::TokenLauncherInteractError::MintAddressMismatch);
