@@ -8,6 +8,7 @@ declare_id!("4ZxRnucEWC62kVktmx27cz9d1PzWWNgiZLT5VWFLbfB2");
 
 #[program]
 pub mod token_minter {
+
     use super::*;
 
     pub fn create_token(
@@ -25,5 +26,9 @@ pub mod token_minter {
 
     pub fn burn_token(ctx: Context<BurnToken>, amount: u64) -> Result<()> {
         burn::burn_token(ctx, amount)
+    }
+
+    pub fn transfer_token(ctx: Context<TransferToken>, amount: u64) -> Result<()> {
+        transfer::transfer_token(ctx, amount)
     }
 }

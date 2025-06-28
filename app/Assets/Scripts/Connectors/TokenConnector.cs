@@ -148,5 +148,70 @@ namespace Connectors
             var rawData = Convert.FromBase64String(metadataAccountInfo.Result.Value.Data[0]);
             return MetadataAccountV3.Deserialize(rawData);
         }
+
+        /// <summary>
+        /// Returns the extra accounts needed for a hard currency transfer, matching the Rust program's requirements.
+        /// </summary>
+        /// <param name="paymentMint">The mint of the payment token.</param>
+        /// <param name="vaultPda">The vault PDA.</param>
+        /// <returns>Array of AccountMeta objects representing the required accounts.</returns>
+        public AccountMeta[] GetTransferExtraAccounts(PublicKey vaultPda)
+        {
+            var authority = Web3Utils.SessionToken == null
+                ? Web3.Wallet.Account
+                : Web3Utils.SessionWallet.Account;
+
+            var userAta = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(authority, new(TokenMintPda));
+            var vaultAta = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(vaultPda, new(TokenMintPda));
+
+            var accounts = new List<AccountMeta>
+            {
+                AccountMeta.Writable(new(TokenMintPda), false), // payment_mint_account
+                AccountMeta.Writable(userAta, false), // payment_token_account
+                AccountMeta.Writable(authority, true), // payment_token_authority
+                AccountMeta.Writable(vaultAta, false), // destination_token_account
+                AccountMeta.ReadOnly(vaultPda, false), // destination_pda
+                AccountMeta.ReadOnly(TokenProgram.ProgramIdKey, false), // token_program
+                AccountMeta.ReadOnly(AssociatedTokenAccountProgram.ProgramIdKey, false), // associated_token_program
+                AccountMeta.ReadOnly(SystemProgram.ProgramIdKey, false) // system_program
+            };
+
+            return accounts.ToArray();
+        }
+
+        public async Task EnsureVaultAtaExists(PublicKey vaultPda)
+        {
+            var ata = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(vaultPda, new(TokenMintPda));
+
+            var ataInfo = await Web3.Rpc.GetAccountInfoAsync(ata);
+            if (ataInfo.Result?.Value == null)
+            {
+                Debug.Log($"Creating ATA for vault: {ata}");
+                var blockHash = await Web3.Rpc.GetLatestBlockHashAsync();
+                var tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                    .SetFeePayer(Web3.Wallet.Account)
+                    .AddInstruction(
+                        AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
+                            Web3.Wallet.Account, // payer
+                            vaultPda, // owner (PDA)
+                            new(TokenMintPda) // mint
+                        )
+                    )
+                    .Build(new[] { Web3.Wallet.Account });
+
+                var result = await Web3.Wallet.ActiveRpcClient.SendTransactionAsync(tx);
+                if (!result.WasSuccessful)
+                    throw new Exception($"ATA creation failed: {result.Reason}");
+            }
+        }
+
+        public static float CalculateTokenPrice(ulong supply)
+        {
+            const float basePrice = 1f;
+            const float coefficient = 0.05f;
+            var fullTokens = supply / 1_000_000_000f;
+            return basePrice + coefficient * fullTokens * fullTokens;
+        }
     }
 }

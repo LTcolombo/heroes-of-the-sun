@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Model;
 using Smartobjecttokenlauncher.Accounts;
@@ -42,6 +43,8 @@ namespace Connectors
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
         {
+            await _token.EnsureVaultAtaExists(new(DataAddress));
+            
             
             //setup hero
             _hero.SetDataAddress(
@@ -59,7 +62,9 @@ namespace Connectors
                     {
                         new PublicKey(_hero.EntityPda), _hero.GetComponentProgramAddress()
                     }
-                }, false, GetMintExtraAccounts(systemAddress, mint));
+                }, false,
+                GetMintExtraAccounts(systemAddress, mint)
+                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray());
 
 
             //re-delegate

@@ -17,31 +17,28 @@ pub mod claim_loot {
         let mint_account = ctx
             .mint_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("mint_account: {}", mint_account.key);
         let associated_token_account = ctx
             .associated_token_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("associated_token_account: {}", associated_token_account.key);
         let token_program = ctx
             .token_program()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("token_program: {}", token_program.key);
         let associated_token_program = ctx
             .associated_token_program()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("associated_token_program: {}", associated_token_program.key);
         let system_program = ctx
             .system_program()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("system_program: {}", system_program.key);
         let payer = ctx.signer().map_err(|_| ProgramError::InvalidAccountData)?;
 
-        let session_token = ctx
-            .session_token()
-            .map_err(|_| ProgramError::InvalidAccountData)?;
-
         msg!("payer: {}", payer.key);
-        msg!("mint_account: {}", mint_account.key);
-        msg!("associated_token_account: {}", associated_token_account.key);
-        msg!("token_program: {}", token_program.key);
-        msg!("associated_token_program: {}", associated_token_program.key);
-        msg!("system_program: {}", system_program.key);
-        msg!("session_token: {}", session_token.key);
+
+        let session_token = ctx.session_token().map(|opt| opt.to_account_info()).ok();
 
         let loot = &mut ctx.accounts.loot;
         // let hero = &mut ctx.accounts.hero;
@@ -63,7 +60,7 @@ pub mod claim_loot {
                     token_program: token_program.clone(),
                     associated_token_program: associated_token_program.clone(),
                     system_program: system_program.clone(),
-                    session_token: Some(session_token.clone()),
+                    session_token: session_token,
                 },
             ),
             1 as u64,

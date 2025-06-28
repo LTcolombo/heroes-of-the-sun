@@ -58,48 +58,114 @@ pub mod smart_object_token_launcher_interact {
 
         //check positive balance
 
+        // Calculate costs
+        let food_cost = args.quantity as u64 * launcher.recipe.food as u64;
+        let water_cost = args.quantity as u64 * launcher.recipe.water as u64;
+        let wood_cost = args.quantity as u64 * launcher.recipe.wood as u64;
+        let stone_cost = args.quantity as u64 * launcher.recipe.stone as u64;
+
         if launcher.recipe.food > 0 {
-            if hero.backpack.food < args.quantity * launcher.recipe.food as u16 {
+            if (hero.backpack.food as u64) < food_cost {
                 return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
             }
         }
 
         if launcher.recipe.water > 0 {
-            if hero.backpack.water < args.quantity * launcher.recipe.water as u16 {
+            if (hero.backpack.water as u64) < water_cost {
                 return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
             }
         }
 
         if launcher.recipe.wood > 0 {
-            if hero.backpack.wood < args.quantity * launcher.recipe.wood as u16 {
+            if (hero.backpack.wood as u64) < wood_cost {
                 return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
             }
         }
 
         if launcher.recipe.stone > 0 {
-            if hero.backpack.stone < args.quantity * launcher.recipe.stone as u16 {
+            if (hero.backpack.stone as u64) < stone_cost {
                 return err!(errors::TokenLauncherInteractError::NotEnoughBackpackResources);
             }
         }
 
         //subtract
 
-        hero.backpack.food = hero
-            .backpack
-            .food
-            .wrapping_sub(args.quantity * launcher.recipe.food);
-        hero.backpack.water = hero
-            .backpack
-            .water
-            .wrapping_sub(args.quantity * launcher.recipe.water);
-        hero.backpack.wood = hero
-            .backpack
-            .wood
-            .wrapping_sub(args.quantity * launcher.recipe.wood);
-        hero.backpack.stone = hero
-            .backpack
-            .stone
-            .wrapping_sub(args.quantity * launcher.recipe.stone);
+        hero.backpack.food = hero.backpack.food.wrapping_sub(food_cost as u16);
+        hero.backpack.water = hero.backpack.water.wrapping_sub(water_cost as u16);
+        hero.backpack.wood = hero.backpack.wood.wrapping_sub(wood_cost as u16);
+        hero.backpack.stone = hero.backpack.stone.wrapping_sub(stone_cost as u16);
+
+        // --- Hard currency transfer to PDA-controlled associated token account based on bonding curve ---
+        let payment_mint = ctx
+            .payment_mint_account()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let payment_token_account = ctx
+            .payment_token_account()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let payment_token_authority = ctx
+            .payment_token_authority()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+
+        let full_token_supply = mint.supply / 1_000_000_000;
+        let base_price = 1.0;
+        let coefficient = 0.05;
+        let price_per_token = base_price + coefficient * (full_token_supply as f64).powi(2);
+        let bonding_cost = (price_per_token * 1_000_000_000.0 * args.quantity as f64).ceil() as u64;
+
+        let payment_token_account_data = anchor_spl::token::TokenAccount::try_deserialize(
+            &mut &**payment_token_account.data.borrow(),
+        )
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+
+        if payment_token_account_data.amount < bonding_cost {
+            return err!(errors::TokenLauncherInteractError::NotEnoughHardCurrency);
+        }
+
+        msg!(
+            "Token account authority: {}",
+            payment_token_account_data.owner
+        );
+        msg!(
+            "Provided payment_token_authority: {}",
+            payment_token_authority.key()
+        );
+
+        msg!(
+            "from (payment_token_account): {}",
+            payment_token_account.key()
+        );
+
+        let payment_token_program = ctx
+            .token_program()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let destination_token_account = ctx
+            .destination_token_account()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let destination_pda = ctx
+            .destination_pda()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+
+        msg!(
+            "to   (destination_token_account): {}",
+            destination_token_account.key()
+        );
+        msg!("authority: {}", payment_token_authority.key());
+
+        msg!("from.owner: {}", payment_token_account.owner);
+        msg!("to.owner: {}", destination_token_account.owner);
+        msg!("from data len: {}", payment_token_account.data_len());
+        msg!("to data len: {}", destination_token_account.data_len());
+
+        let transfer_ctx = CpiContext::new(
+            payment_token_program.to_account_info(),
+            anchor_spl::token::Transfer {
+                from: payment_token_account.to_account_info(),
+                to: destination_token_account.to_account_info(),
+                authority: payment_token_authority.to_account_info(),
+            },
+        );
+
+        anchor_spl::token::transfer(transfer_ctx, bonding_cost)?;
 
         //proceed to minting
 
@@ -148,6 +214,8 @@ pub mod smart_object_token_launcher_interact {
         pub quantity: u16,
     }
 
+    // These accounts are used to transfer payment tokens (hard currency) to a PDA-controlled vault as part of bonding curve pricing.
+    // They are distinct from the minting token accounts used for actual token output.
     #[extra_accounts]
     pub struct ExtraAccounts {
         #[account(mut)]
@@ -177,5 +245,25 @@ pub mod smart_object_token_launcher_interact {
 
         pub associated_token_program: Program<'info, AssociatedToken>,
         pub system_program: Program<'info, System>,
+
+        // --- Hard currency transfer setup ---
+        #[account(mut)]
+        pub payment_mint_account: Account<'info, Mint>,
+
+        #[account(mut)]
+        pub payment_token_account: Account<'info, TokenAccount>,
+
+        #[account()]
+        pub payment_token_authority: Signer<'info>,
+
+        #[account(mut)]
+        pub destination_token_account: Account<'info, TokenAccount>,
+
+        /// CHECK: Token vault PDA
+        #[account(
+            seeds = [b"vault"],
+            bump
+        )]
+        pub destination_pda: UncheckedAccount<'info>,
     }
 }

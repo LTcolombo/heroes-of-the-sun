@@ -7,4 +7,7 @@ pub enum TokenLauncherInteractError {
 
     #[msg("Not enough resources in the backpack")]
     NotEnoughBackpackResources,
+
+    #[msg("Not enough hard currency")]
+    NotEnoughHardCurrency,
 }

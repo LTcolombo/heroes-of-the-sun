@@ -1,5 +1,6 @@
 using System.Collections;
 using Smartobjecttokenlauncher.Types;
+using Solana.Unity.Wallet;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -19,8 +20,10 @@ namespace View.UI.World
         [SerializeField] private TMP_Text resourceWood;
         [SerializeField] private TMP_Text resourceWater;
         [SerializeField] private TMP_Text resourceStone;
+        
+        [SerializeField] private TMP_Text goldPrice;
 
-        public void SetData(MetadataAccountV3 value, ResourceBalance cost)
+        public void SetData(MetadataAccountV3 value, ResourceBalance cost, float goldCost)
         {
             StartCoroutine(LoadMetadata(value.Uri));
 
@@ -31,7 +34,8 @@ namespace View.UI.World
                 resourceWater.text = $"x{cost.Water}";
                 resourceStone.text = $"x{cost.Stone}";
             }
-            
+
+            goldPrice.text = $"{goldCost:0.00}";
         }
 
         private IEnumerator LoadMetadata(string url)

@@ -31,12 +31,10 @@ export class TokenWrapper {
     )[0];
 
     this.metadata = {
-      name: "Magical Gem",
-      symbol: "MBGEM",
-      uri: "https://shdw-drive.genesysgo.net/4PMP1MG5vYGkT7gnAMb7E5kqPLLjjDzTiAaZ3xRx5Czd/gem.json",
+      name: "Gold",
+      symbol: "HOTSGOLD",
+      uri: "https://gateway.pinata.cloud/ipfs/bafkreibvkerzoie7e5oeshjrcqcrponmuthg2sz3ppr4cdao3mmnjugtka",
     };
-
-
 
     console.log(`SPL Token: \x1b[31m (mintPDA = ${this.mintPDA} \x1b[0m).`);
 
@@ -45,10 +43,7 @@ export class TokenWrapper {
       this.mintPDA,
       this.provider.wallet.publicKey
     );
-
-
   }
-
 
 
   async createToken() {

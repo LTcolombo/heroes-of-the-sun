@@ -1,6 +1,7 @@
 using System;
+using Solana.Unity.Programs.Models.TokenProgram;
+
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
@@ -84,13 +85,28 @@ namespace View.Exploration.SmartObjectTypes
 
         public async Task SetEntity(string value)
         {
+            tokenInfo.gameObject.SetActive(false);
+            
             await _connector.SetEntityPda(value, false);
             _data = await _connector.LoadData();
 
             try
             {
                 var data = await _token.LoadMetadata(_data.Mint);
-                tokenInfo.SetData(data, _data.Recipe);
+                var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint);
+                var mintData = mintAccount.Result?.Value?.Data[0];
+
+                if (mintData == null)
+                    return;
+                
+                var mintBytes = Convert.FromBase64String(mintData);
+                var mint = TokenMint.Deserialize(mintBytes);
+                var supply = mint.Supply;var price = TokenConnector.CalculateTokenPrice(supply);
+                Debug.Log($"[TokenLauncher] Current token price (bonding curve): {price}");
+                
+                tokenInfo.gameObject.SetActive(true);
+                tokenInfo.SetData(data, _data.Recipe, price);
+
             }
             catch (Exception e)
             {
