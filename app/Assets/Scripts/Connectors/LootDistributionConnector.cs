@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Solana.Unity.Rpc.Models;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using UnityEngine;
@@ -22,6 +23,11 @@ namespace Connectors
         protected override LootDistribution.Accounts.LootDistribution DeserialiseBytes(byte[] value)
         {
             return LootDistribution.Accounts.LootDistribution.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new System.NotImplementedException();
         }
 
         public async Task<bool> Claim(int index, Dictionary<PublicKey, PublicKey> extraEntities)

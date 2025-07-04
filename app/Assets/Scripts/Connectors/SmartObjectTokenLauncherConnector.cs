@@ -26,6 +26,11 @@ namespace Connectors
             return SmartObjectTokenLauncher.Deserialize(value);
         }
 
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override PublicKey GetComponentProgramAddress()
         {
             return new PublicKey("8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3");
@@ -45,11 +50,8 @@ namespace Connectors
         {
             await _token.EnsureVaultAtaExists(new(DataAddress));
             
-            
-            //setup hero
-            _hero.SetDataAddress(
-                Pda.FindComponentPda(new(_player.EntityPda), _hero.GetComponentProgramAddress()));
-            await _hero.SetEntityPda(_player.EntityPda);
+            await _hero.SetEntityPda(_player.EntityPda, false);
+            var data = await _hero.LoadData();
 
             //undelegate
             await _hero.Undelegate();
@@ -70,6 +72,9 @@ namespace Connectors
             //re-delegate
             await _hero.Delegate();
 
+            //copy to ER
+            await _hero.Move(data.X, data.Y);
+            
             return result;
         }
 

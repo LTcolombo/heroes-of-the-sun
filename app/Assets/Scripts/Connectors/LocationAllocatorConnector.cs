@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Locationallocator.Accounts;
 using Locationallocator.Program;
 using Newtonsoft.Json;
+using Solana.Unity.Rpc.Models;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using UnityEngine;
@@ -22,6 +23,11 @@ namespace Connectors
         protected override LocationAllocator DeserialiseBytes(byte[] value)
         {
             return LocationAllocator.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new System.NotImplementedException();
         }
 
         public async Task<string> GetNextUnallocatedLocation()

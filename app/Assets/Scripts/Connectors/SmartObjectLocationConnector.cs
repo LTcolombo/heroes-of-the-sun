@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Solana.Unity.Rpc.Models;
 using Solana.Unity.Wallet;
 
 namespace Connectors
@@ -12,6 +13,11 @@ namespace Connectors
         protected override SmartObjectLocation.Accounts.SmartObjectLocation DeserialiseBytes(byte[] value)
         {
             return SmartObjectLocation.Accounts.SmartObjectLocation.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new System.NotImplementedException();
         }
 
         public override PublicKey GetComponentProgramAddress()

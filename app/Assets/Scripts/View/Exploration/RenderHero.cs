@@ -51,23 +51,23 @@ namespace View.Exploration
         public async Task SetEntity(string value)
         {
             await _connector.SetEntityPda(value, false);
-            await Init();
+            await Init(true);
         }
         
         public async Task SetDataAddress(string value)
         {
             _connector.SetDataAddress(value);
-            await Init();
+            await Init(false);
         }
 
-        private async Task Init()
+        private async Task Init(bool own)
         {
             _data = await _connector.LoadData();
             keyLabel.text = _data.Owner.ToString()[..4];
 
             await _connector.Subscribe(OnDataUpdate);
 
-            if (_data.Owner.ToString() == _player.DataAddress)
+            if (own)
             {
                 _playerHero.Set(_data);
                 gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(_connector.DataAddress);

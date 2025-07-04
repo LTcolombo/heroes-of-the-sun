@@ -47,6 +47,11 @@ namespace Connectors
             return SmartObjectDeity.Accounts.SmartObjectDeity.Deserialize(value);
         }
 
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new NotImplementedException();
+        }
+
         public override PublicKey GetComponentProgramAddress()
         {
             return new PublicKey("9RfzWgEBYQAM64a46V3dGRPKYsVY8a7YvZszWPMxvBfk");

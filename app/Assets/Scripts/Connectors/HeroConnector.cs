@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Hero.Program;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 
 namespace Connectors
@@ -13,6 +15,15 @@ namespace Connectors
         protected override Hero.Accounts.Hero DeserialiseBytes(byte[] value)
         {
             return Hero.Accounts.Hero.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            return HeroProgram.Undelegate(new()
+            {
+                Payer = Web3.Account,
+                DelegatedAccount = playerDataPda
+            });
         }
 
         public override PublicKey GetComponentProgramAddress()

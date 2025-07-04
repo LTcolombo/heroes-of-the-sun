@@ -1,6 +1,5 @@
 using System;
 using Solana.Unity.Programs.Models.TokenProgram;
-
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Connectors;
@@ -48,7 +47,7 @@ namespace View.Exploration.SmartObjectTypes
 
             purchaseControl.SetActive(true);
         }
-        
+
         private void OnInteractionHide()
         {
             purchaseControl.SetActive(false);
@@ -75,55 +74,52 @@ namespace View.Exploration.SmartObjectTypes
             var res = await Web3.Wallet.SignAndSendTransaction(tx, true);
 
             await _connector.Interact(quantity, _data.Mint);
-
-            // var hero = _playerHero.Get();
-            // _connector.Interact(1,  new Dictionary<PublicKey, PublicKey>()
-            // {
-            //     { hero.Owner, _heroConnector.GetComponentProgramAddress() }
-            // });
         }
 
         public async Task SetEntity(string value)
         {
             tokenInfo.gameObject.SetActive(false);
-            
-            await _connector.SetEntityPda(value, false);
-            _data = await _connector.LoadData();
 
+            await _connector.SetEntityPda(value, false);
+            await _connector.Subscribe(OnDataUpdate);
+            OnDataUpdate(await _connector.LoadData());
+        }
+
+        public async Task UpdateData()
+        {
+            OnDataUpdate(await _connector.LoadData());
+        }
+
+        private void OnDataUpdate(SmartObjectTokenLauncher value)
+        {
+            _data = value;
+            _ = Redraw();
+        }
+
+        private async Task Redraw()
+        {
             try
             {
                 var data = await _token.LoadMetadata(_data.Mint);
-                var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint);
+                var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint, Commitment.Processed);
                 var mintData = mintAccount.Result?.Value?.Data[0];
 
                 if (mintData == null)
                     return;
-                
+
                 var mintBytes = Convert.FromBase64String(mintData);
                 var mint = TokenMint.Deserialize(mintBytes);
-                var supply = mint.Supply;var price = TokenConnector.CalculateTokenPrice(supply);
+                var supply = mint.Supply;
+                var price = TokenConnector.CalculateTokenPrice(supply);
                 Debug.Log($"[TokenLauncher] Current token price (bonding curve): {price}");
-                
+
                 tokenInfo.gameObject.SetActive(true);
                 tokenInfo.SetData(data, _data.Recipe, price);
-
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-
-            await _connector.Subscribe(OnDataUpdate);
-        }
-
-        public async Task UpdateData()
-        {
-            await _connector.LoadData();
-        }
-        
-        private void OnDataUpdate(SmartObjectTokenLauncher value)
-        {
-            _data = value;
         }
 
         private void OnDestroy()

@@ -534,16 +534,13 @@ namespace Connectors
             tx.Instructions.Add(ComputeBudgetProgram.SetComputeUnitLimit(75000));
             tx.Instructions.Add(ComputeBudgetProgram.SetComputeUnitPrice(100000));
 
-            // Delegate the player data pda
-            UndelegateAccounts undelegateAccounts = new()
-            {
-                Payer = Web3.Account,
-                DelegatedAccount = playerDataPda
-            };
-            tx.Add(SettlementProgram.Undelegate(undelegateAccounts));
+            // Undelegate the player data pda
+            tx.Add(GetUndelegateIx(playerDataPda));
 
             return tx;
         }
+
+        protected  abstract TransactionInstruction GetUndelegateIx(PublicKey playerDataPda);
 
         public static PublicKey FindDelegationProgramPda(string seed, PublicKey account)
         {
