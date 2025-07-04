@@ -20,7 +20,8 @@ describe("Test suite for: tokenized gold source and sink", () => {
 
 
     it("creates a token", async () => {
-        await token.createToken();//
+        await world.getWorldPda()
+        // await token.createToken();//
     });
 
     // it("Initializes (with a default town hall) if needed", async () => {

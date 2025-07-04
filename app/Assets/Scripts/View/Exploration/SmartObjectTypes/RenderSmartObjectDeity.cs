@@ -60,6 +60,11 @@ namespace View.Exploration.SmartObjectTypes
             await _connector.Subscribe(OnDataUpdate);
         }
 
+        public async Task UpdateData()
+        {
+            await _connector.LoadData();
+        }
+
         private void OnDataUpdate(SmartObjectDeity.Accounts.SmartObjectDeity value)
         {
             _data = value;

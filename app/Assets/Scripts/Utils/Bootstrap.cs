@@ -211,7 +211,6 @@ namespace Utils
             await Web3.Rpc.RequestAirdropAsync(Web3.Account.PublicKey, 10000000000000);
             Debug.Log((await Web3.Rpc.GetBalanceAsync(Web3.Account.PublicKey)).Result.Value);
 
-            
             _progress = .1f;
 
             label.text = $"[{Web3.Account.PublicKey}] Loading Player Data.. ";
@@ -280,7 +279,7 @@ namespace Utils
             label.text = $"Init Gold Token...";
             await _token.LoadData();
             await _token.Subscribe(null);
-            
+
             _progress = .8f;
 
             //ensure hero is created
@@ -302,11 +301,15 @@ namespace Utils
             _progress = .9f;
 
             label.text = $"Delegating Hero...";
-            // if (await _hero.Delegate())
-            // {
-            //     var settlement = _playerModel.Get().Settlements[0];
-            //     await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
-            // }
+            if (await _hero.Delegate())
+            {
+                var settlement = _playerModel.Get().Settlements[0];
+                if (hero.X == 0 && hero.Y == 0)
+                    //initial position
+                    await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
+                else
+                    await _hero.Move(hero.X, hero.Y); //just clone to rollup
+            }
 
 
             _progress = 1;

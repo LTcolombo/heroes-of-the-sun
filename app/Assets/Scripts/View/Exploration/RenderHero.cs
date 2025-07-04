@@ -40,14 +40,28 @@ namespace View.Exploration
         private Hero.Accounts.Hero _data;
         private Vector2Int _position;
 
+        public string DataAddress => _connector.DataAddress;
+
         private void Start()
         {
             _line = GetComponent<LineRenderer>();
         }
 
+
+        public async Task SetEntity(string value)
+        {
+            await _connector.SetEntityPda(value, false);
+            await Init();
+        }
+        
         public async Task SetDataAddress(string value)
         {
             _connector.SetDataAddress(value);
+            await Init();
+        }
+
+        private async Task Init()
+        {
             _data = await _connector.LoadData();
             keyLabel.text = _data.Owner.ToString()[..4];
 
@@ -56,7 +70,7 @@ namespace View.Exploration
             if (_data.Owner.ToString() == _player.DataAddress)
             {
                 _playerHero.Set(_data);
-                gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(value);
+                gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(_connector.DataAddress);
 
                 backpack.gameObject.SetActive(true);
             }

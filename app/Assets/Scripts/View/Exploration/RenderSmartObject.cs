@@ -32,6 +32,7 @@ namespace View.Exploration
         [Inject] private SmartObjectTokenLauncherConnector _tokenLauncher;
 
         [SerializeField] private ComponentRenderer[] renderers;
+        private GameObject _renderer;
 
 
         public async Task SetDataAddress(string value)
@@ -70,7 +71,8 @@ namespace View.Exploration
                 renderers.FirstOrDefault(r => r.componentAddress == connector.GetComponentProgramAddress());
             if (smartObjectRenderer == null)
                 return false;
-            Instantiate(smartObjectRenderer.prefab, transform);
+            _renderer = smartObjectRenderer.prefab;
+            Instantiate(_renderer, transform);
             return true;
         }
 
@@ -98,6 +100,7 @@ namespace View.Exploration
 
         public void UpdateData()
         {
+            _renderer.GetComponent<ISmartObject>().UpdateData();
         }
     }
 }

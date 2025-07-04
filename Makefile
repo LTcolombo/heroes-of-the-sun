@@ -39,7 +39,12 @@ extend:
 	- exec solana program extend BExuAEwcKxKeqHSN8C1WetUAd6Tm71cZEiP8EBSrH55T 50000
 	- exec solana program extend 62f9zAUjCN5VFqWF43qSUrW6CvivqhsEjDvCHwQ1SjgR 50000
 	- exec solana program extend C2H1sb7ZVpgEZFWqXujRK3rx5C2543GNN251wmgfbhUH 50000
+	- exec solana program extend 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 50000
+	- exec solana program extend AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap 50000
+	- exec solana program extend DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst 50000
 
-idl:
+	
+
+idl_local:
 	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster l
 	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster l

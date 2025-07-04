@@ -5,5 +5,7 @@ namespace View.Exploration.SmartObjectTypes
     public interface ISmartObject
     {
         Task SetEntity(string value);
+
+        Task UpdateData();
     }
 }
