@@ -91,7 +91,7 @@ namespace Utils
                     break;
                 case WalletType.InGame:
                     // ReSharper disable once MethodHasAsyncOverload
-                    //its not an async overload lol
+                    //there is no async overload lol
 
                     LoginInGameWallet();
                     break;
@@ -208,8 +208,6 @@ namespace Utils
             //     await Web3Utils.EnsureBalance();
             // }
 
-            await Web3.Rpc.RequestAirdropAsync(Web3.Account.PublicKey, 10000000000000);
-            Debug.Log((await Web3.Rpc.GetBalanceAsync(Web3.Account.PublicKey)).Result.Value);
 
             _progress = .1f;
 
@@ -259,8 +257,8 @@ namespace Utils
             //todo make connectors subscribe and dont keep bootstrap alive
             _settlementModel.Set(await _settlement.LoadData());
 
-            // if (await _settlement.Delegate())
-            //     await _settlement.CloneToRollup();
+            if (await _settlement.Delegate())
+                await _settlement.CloneToRollup();
 
 
             _progress = .6f;
