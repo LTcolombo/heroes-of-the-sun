@@ -68,11 +68,11 @@ namespace Connectors
             await AcquireComponentDataAddress(forceCreateEntity);
         }
 
-        public async UniTask SetEntityPda(string value, bool forceCreateEntity = true)
+        public async UniTask SetEntityPda(string value, bool forceCreateEntity = true, bool publicComponent = false)
         {
             _entityPda = value;
             Debug.Log("SetEntityPda: " + _entityPda);
-            await AcquireComponentDataAddress(forceCreateEntity);
+            await AcquireComponentDataAddress(forceCreateEntity, publicComponent);
         }
 
 
@@ -180,7 +180,7 @@ namespace Connectors
             return false;
         }
 
-        private async UniTask AcquireComponentDataAddress(bool forceCreateEntity)
+        private async UniTask AcquireComponentDataAddress(bool forceCreateEntity, bool publicComponent = true)
         {
             if (Web3.Account == null) throw new NullReferenceException("No Web3 Account");
             var walletBase = Web3.Wallet;
@@ -241,7 +241,7 @@ namespace Connectors
                                 Data = dataAddress,
                                 ComponentProgram = GetComponentProgramAddress(),
                                 SystemProgram = SystemProgram.ProgramIdKey,
-                                Authority = Web3.Wallet.Account.PublicKey,
+                                Authority = publicComponent ? new(WorldProgram.ID) : Web3.Wallet.Account.PublicKey,
                                 InstructionSysvarAccount = SysVars.InstructionAccount
                             })
                         },
@@ -540,7 +540,7 @@ namespace Connectors
             return tx;
         }
 
-        protected  abstract TransactionInstruction GetUndelegateIx(PublicKey playerDataPda);
+        protected abstract TransactionInstruction GetUndelegateIx(PublicKey playerDataPda);
 
         public static PublicKey FindDelegationProgramPda(string seed, PublicKey account)
         {

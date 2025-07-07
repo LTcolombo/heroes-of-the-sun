@@ -290,7 +290,7 @@ namespace View.UI
 
                 SetProgressStep(TokenCreationSteps.TokenLauncherInitialisation);
 
-                await _tokenLauncher.SetEntityPda(_loc.EntityPda);
+                await _tokenLauncher.SetEntityPda(_loc.EntityPda, true, true);
 
                 await _tokenLauncher.Init(metadataName, metadataSymbol, metadataIpfsUrl, mint, _recipeFoodValue,
                     _recipeWaterValue, _recipeWoodValue, _recipeStoneValue);
