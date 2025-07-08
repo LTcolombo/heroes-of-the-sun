@@ -115,6 +115,7 @@ namespace Connectors
             if (resDelegation.WasSuccessful)
             {
                 Debug.Log($"Delegate Signature: {resDelegation.Result}");
+
                 await RpcClient.ConfirmTransaction(resDelegation.Result, Commitment.Confirmed);
                 _delegated = true;
 
@@ -160,10 +161,30 @@ namespace Connectors
             {
                 var resUndelegation = await Wallet.SignAndSendTransaction(txUndelegate, true);
                 await RpcClient.ConfirmTransaction(resUndelegation.Result, Commitment.Confirmed);
-                Debug.Log($"Undelegate Signature: {resUndelegation.Result}");
+
                 if (resUndelegation.WasSuccessful)
                 {
-                    await RpcClient.ConfirmTransaction(resUndelegation.Result, Commitment.Confirmed);
+                    var tx = await RpcClient.GetTransactionAsync(resUndelegation.Result);
+                    var messages = tx.Result.Meta.LogMessages;
+                    string scheduledTx = null;
+                    foreach (var message in messages)
+                    {
+                        if (message.Contains("signature"))
+                            scheduledTx = message.Split(": ")[1];
+                    }
+
+                    tx = await RpcClient.GetTransactionAsync(scheduledTx, Commitment.Processed);
+                    messages = tx.Result.Meta.LogMessages;
+                    foreach (var message in messages)
+                    {
+                        if (message.Contains("signature"))
+                            scheduledTx = message.Split(": ")[1];
+                    }
+
+                    await Web3.Wallet.ActiveRpcClient.ConfirmTransaction(scheduledTx, Commitment.Confirmed);
+
+                    Debug.Log($"Undelegate Signature: {scheduledTx}");
+
                     _delegated = false;
 
                     if (resubscribe)
