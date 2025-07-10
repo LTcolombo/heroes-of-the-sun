@@ -53,6 +53,7 @@ namespace View.Exploration
                 }
                 catch (Exception e)
                 {
+                    Destroy(renderHero);
                     Debug.LogError(e);
                 }
             }

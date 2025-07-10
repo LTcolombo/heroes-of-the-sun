@@ -40,11 +40,10 @@ namespace View.Exploration
             _connector.SetDataAddress(value);
             var data = await _connector.LoadData();
 
-            var componentFound = false;
-            componentFound |= await TryInitSmartObject(data.Entity, _deity);
-            
-            //if already found this wont execute :thumbs up:
-            componentFound |= await TryInitSmartObject(data.Entity, _tokenLauncher);
+            var componentFound = await TryInitSmartObject(data.Entity, _tokenLauncher);
+
+            if (!componentFound)
+                componentFound = await TryInitSmartObject(data.Entity, _deity);
 
 
             //no match
@@ -54,10 +53,10 @@ namespace View.Exploration
                 return;
             }
 
-            foreach (var smartObject in gameObject.GetComponentsInChildren<ISmartObject>())
-                await smartObject.SetEntity(data.Entity);
 
             OnDataUpdate(data);
+            foreach (var smartObject in gameObject.GetComponentsInChildren<ISmartObject>())
+                await smartObject.SetEntity(data.Entity);
             await _connector.Subscribe(OnDataUpdate);
         }
 
