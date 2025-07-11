@@ -43,13 +43,13 @@ namespace Connectors
             return await ApplySystem(systemAddress,
                 new { token_name, token_symbol, token_uri, recipe_food, recipe_water, recipe_wood, recipe_stone }, null,
                 true,
-                _token.GetCreateExtraAccounts(mintPublicKey, systemAddress));
+                _token.GetCreateExtraAccounts(mintPublicKey, systemAddress), true);
         }
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
         {
             await _token.EnsureVaultAtaExists(new(DataAddress));
-            
+
             await _hero.SetEntityPda(_player.EntityPda, false);
             var data = await _hero.LoadData();
 
@@ -66,7 +66,7 @@ namespace Connectors
                     }
                 }, false,
                 GetMintExtraAccounts(systemAddress, mint)
-                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray());
+                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray(), true);
 
 
             //re-delegate
@@ -74,7 +74,7 @@ namespace Connectors
 
             //copy to ER
             await _hero.Move(data.X, data.Y);
-            
+
             return result;
         }
 
