@@ -39,7 +39,7 @@ namespace View.Exploration
             if (Input.GetMouseButtonDown(0))
                 _mouseDownTime = Time.time;
 
-            if (Input.GetMouseButtonUp(0) && Time.time - _mouseDownTime < .1f)
+            if (Input.GetMouseButtonUp(0) && Time.time - _mouseDownTime < .5f)
             {
                 if (EventSystem.current.IsPointerOverGameObject())
                     return;

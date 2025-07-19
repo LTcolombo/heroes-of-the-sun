@@ -197,7 +197,7 @@ namespace Utils
                 { "PublicKey", account.PublicKey.ToString() },
             });
 
-            // if (Web3.Wallet is not InGameWallet)
+            if (Web3.Wallet is not InGameWallet)
             {
                 Debug.Log("Initialize Session..");
                 await CreateNewSession();

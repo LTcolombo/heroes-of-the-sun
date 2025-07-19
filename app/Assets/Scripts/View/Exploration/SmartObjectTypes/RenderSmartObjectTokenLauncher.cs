@@ -119,6 +119,7 @@ namespace View.Exploration.SmartObjectTypes
             catch (Exception e)
             {
                 Debug.LogException(e);
+                Destroy(gameObject);
             }
         }
 
