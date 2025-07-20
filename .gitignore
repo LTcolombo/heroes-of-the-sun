@@ -15,3 +15,4 @@ target/types
 target/.rustc_info.json
 target/deploy/*.so
 app/web-bin
+target/sbpf-solana-solana

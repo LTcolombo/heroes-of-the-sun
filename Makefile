@@ -48,3 +48,10 @@ extend:
 idl_local:
 	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster l
 	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster l
+
+
+idl:
+	-exec bolt idl init -f target/idl/wait.json 9F6qiZPUWN3bCnr5uVBwSmEDf8QcAFHNSVDH8L7AkZe4 --provider.cluster d
+	-exec bolt idl init -f target/idl/move_hero.json 6o9i5V3EvT9oaokbcZa7G92DWHxcqJnjXmCp94xxhQhv --provider.cluster d
+	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster d
+	
