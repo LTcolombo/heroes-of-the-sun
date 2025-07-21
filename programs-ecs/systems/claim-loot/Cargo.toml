@@ -20,7 +20,6 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 bolt-lang.workspace = true
 anchor-lang.workspace = true
 anchor-spl.workspace = true
-serde = { version = "1.0", features = ["derive"] }
 
 player = { version = "0.1.8", path = "../../components/player", features = ["cpi"] }
 hero = { version = "0.1.8", path = "../../components/hero", features = ["cpi"] }

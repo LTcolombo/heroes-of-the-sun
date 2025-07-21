@@ -6,8 +6,7 @@ declare_id!("7nsn4z8U1nVCVHud9CLmYLy5ZHK2bSMge6u7YgmssdaA");
 #[system]
 pub mod claim_quest {
     use settlement::config::get_quest_progress;
-    use settlement::config::QuestConfig;
-    use settlement::config::QuestType;
+
     use settlement::config::Resource;
     use settlement::config::QUESTS_CONFIG;
     use settlement::Settlement;
@@ -41,7 +40,7 @@ pub mod claim_quest {
 
             msg!("progress!: {}", progress);
 
-            if (progress < quest.target_value as u32) {
+            if progress < quest.target_value as u32 {
                 return err!(errors::QuestClaimError::TargetNotReached);
             }
 

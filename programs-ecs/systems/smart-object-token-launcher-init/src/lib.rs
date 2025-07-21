@@ -114,7 +114,7 @@ pub mod smart_object_token_launcher_init {
 
         msg!("Token created successfully.");
 
-        let (interaction_pda, bump) = Pubkey::find_program_address(
+        let (interaction_pda, _) = Pubkey::find_program_address(
             &[b"authority", mint_account_key.as_ref()],
             &Pubkey::from_str("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst").unwrap(),
         );
@@ -149,7 +149,13 @@ pub mod smart_object_token_launcher_init {
             wood: args.recipe_wood,
             stone: args.recipe_stone,
         };
-        msg!("Set recipe: water={} food={} wood={} stone={}", args.recipe_water, args.recipe_food, args.recipe_wood, args.recipe_stone);
+        msg!(
+            "Set recipe: water={} food={} wood={} stone={}",
+            args.recipe_water,
+            args.recipe_food,
+            args.recipe_wood,
+            args.recipe_stone
+        );
         msg!("launcher.recipe.water: {}", launcher.recipe.water);
         msg!("launcher.recipe.food: {}", launcher.recipe.food);
         msg!("launcher.recipe.wood: {}", launcher.recipe.wood);

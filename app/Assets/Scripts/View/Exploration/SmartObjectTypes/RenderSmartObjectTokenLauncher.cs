@@ -101,6 +101,11 @@ namespace View.Exploration.SmartObjectTypes
             try
             {
                 var data = await _token.LoadMetadata(_data.Mint);
+                if (data == null)
+                {
+                    Destroy(gameObject);
+                    return;
+                }
                 var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint, Commitment.Processed);
                 var mintData = mintAccount.Result?.Value?.Data[0];
 

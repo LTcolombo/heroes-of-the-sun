@@ -142,7 +142,8 @@ namespace Connectors
             var metadataAccountInfo = await Web3.Rpc.GetAccountInfoAsync(metadataPda, Commitment.Processed);
             if (!metadataAccountInfo.WasSuccessful || metadataAccountInfo.Result?.Value?.Data == null)
             {
-                throw new Exception("Unable to fetch metadata account");
+                Debug.LogWarning("Unable to fetch metadata account: " + mintAddress);
+                return null;
             }
 
             var rawData = Convert.FromBase64String(metadataAccountInfo.Result.Value.Data[0]);

@@ -9,7 +9,7 @@ declare_id!("DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst");
 
 #[system]
 pub mod smart_object_token_launcher_interact {
-    use anchor_spl::token::{mint_to, spl_token, Mint, MintTo};
+    use anchor_spl::token::{mint_to, spl_token, MintTo};
     use bolt_lang::solana_program::program_pack::Pack;
     use hero::Hero;
     use smart_object_token_launcher::SmartObjectTokenLauncher;
@@ -52,7 +52,7 @@ pub mod smart_object_token_launcher_interact {
 
         msg!("SUPPLY: {}", mint.supply);
 
-        if (launcher.mint != mint_account_key) {
+        if launcher.mint != mint_account_key {
             return err!(errors::TokenLauncherInteractError::MintAddressMismatch);
         }
 
@@ -96,9 +96,9 @@ pub mod smart_object_token_launcher_interact {
         hero.backpack.stone = hero.backpack.stone.wrapping_sub(stone_cost as u16);
 
         // --- Hard currency transfer to PDA-controlled associated token account based on bonding curve ---
-        let payment_mint = ctx
-            .payment_mint_account()
-            .map_err(|_| ProgramError::InvalidAccountData)?;
+        // let payment_mint = ctx
+        //     .payment_mint_account()
+        //     .map_err(|_| ProgramError::InvalidAccountData)?;
         let payment_token_account = ctx
             .payment_token_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
@@ -141,9 +141,9 @@ pub mod smart_object_token_launcher_interact {
         let destination_token_account = ctx
             .destination_token_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
-        let destination_pda = ctx
-            .destination_pda()
-            .map_err(|_| ProgramError::InvalidAccountData)?;
+        // let destination_pda = ctx
+        //     .destination_pda()
+        //     .map_err(|_| ProgramError::InvalidAccountData)?;
 
         msg!(
             "to   (destination_token_account): {}",
