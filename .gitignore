@@ -14,5 +14,6 @@ target/sbf-solana-solana
 target/types
 target/.rustc_info.json
 target/deploy/*.so
+target/rust-analyzer
 app/web-bin
 target/sbpf-solana-solana
