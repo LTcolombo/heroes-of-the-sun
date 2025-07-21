@@ -19,7 +19,7 @@ idl-build = ["anchor-lang/idl-build",  "anchor-spl/idl-build"]
 [dependencies]
 bolt-lang.workspace = true
 anchor-lang.workspace = true
-serde = { version = "1.0", features = ["derive"] }
+serde.workspace = true
 
 deity-bot = { version = "0.1.0", path = "../../../programs/deity-bot", features = ["cpi"] }
 smart-object-deity = { version = "0.1.8", path = "../../components/smart-object-deity", features = ["cpi"] }
