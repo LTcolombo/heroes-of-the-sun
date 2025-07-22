@@ -34,7 +34,7 @@ namespace Connectors
         public async UniTask<bool> Move(int x, int y)
         {
             return await ApplySystem(new PublicKey("6o9i5V3EvT9oaokbcZa7G92DWHxcqJnjXmCp94xxhQhv"),
-                new { x, y }, null, true);
+                new { x, y });
         }
         
 

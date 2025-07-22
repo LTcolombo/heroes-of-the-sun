@@ -119,7 +119,7 @@ namespace Connectors
                 return false;
             }
 
-            return await ApplySystem(systemAddress, new { index }, null, false,
+            return await ApplySystem(systemAddress, new { index }, null, 
                 extraAccounts.Concat(_interactionAccounts).ToArray());
         }
 

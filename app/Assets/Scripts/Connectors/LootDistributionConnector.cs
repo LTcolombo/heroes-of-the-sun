@@ -33,7 +33,7 @@ namespace Connectors
         public async Task<bool> Claim(int index, Dictionary<PublicKey, PublicKey> extraEntities)
         {
             var applySystem = await ApplySystem(new PublicKey("4CjxHvNUpoCYomULBFTvmkTQPaNd9QDHPhZQ6eB9bZEf"),
-                new { index }, null, false, _token.GetMintExtraAccounts());
+                new { index }, null, _token.GetMintExtraAccounts());
 
 
             if (applySystem && Web3Utils.SessionWallet != null)

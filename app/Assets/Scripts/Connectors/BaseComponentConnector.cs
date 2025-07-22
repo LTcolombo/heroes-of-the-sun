@@ -161,6 +161,8 @@ namespace Connectors
             {
                 var resUndelegation = await Wallet.SignAndSendTransaction(txUndelegate, true);
                 await RpcClient.ConfirmTransaction(resUndelegation.Result, Commitment.Confirmed);
+                
+                Debug.Log($"Undelegate Signature: {resUndelegation.Result}");
 
                 if (resUndelegation.WasSuccessful)
                 {
@@ -362,90 +364,31 @@ namespace Connectors
 
         protected abstract T DeserialiseBytes(byte[] value);
 
-        protected async virtual UniTask<bool> ApplySystem(PublicKey systemAddress, object args,
-            Dictionary<PublicKey, PublicKey> extraEntities = null, bool useDataAddress = false,
-            AccountMeta[] accounts = null, bool ignoreSession = false)
+        protected virtual async UniTask<bool> ApplySystem(PublicKey systemAddress, object args,
+            Dictionary<PublicKey, PublicKey> extraEntities = null, AccountMeta[] extraAccounts = null)
         {
-            var systemApplicationInstruction =
-                useDataAddress
-                    ? GetSystemApplicationInstructionFromDataAddress(
-                        systemAddress,
-                        Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(args)),
-                        ignoreSession
-                    )
-                    : CreateSystemApplicationInstructionFromEntities(systemAddress, args, extraEntities, ignoreSession);
-
-
-            if (accounts != null)
-                foreach (var account in accounts)
-                    systemApplicationInstruction.Keys.Add(account);
-
-            Debug.Log($"Applying System {systemAddress} with args.. :  {JsonConvert.SerializeObject(args)}");
-            return await ExecuteSystemApplicationInstruction(systemApplicationInstruction, ignoreSession);
-        }
-
-        private TransactionInstruction CreateSystemApplicationInstructionFromEntities(PublicKey systemAddress,
-            object args, Dictionary<PublicKey, PublicKey> extraEntities, bool ignoreSession = false)
-        {
-            var componentProgramAddress = GetComponentProgramAddress();
-
-            var input = new WorldProgram.EntityType[]
-            {
-                new(new PublicKey(_entityPda), new[] { componentProgramAddress })
-            };
+            var systemInput = new List<Bolt.World.EntityType>
+                { new(new PublicKey(_entityPda), new[] { GetComponentProgramAddress() }) };
 
             if (extraEntities != null)
-                input = input
-                    .Concat(extraEntities.Select(pair => new WorldProgram.EntityType(pair.Key, new[] { pair.Value }))
-                        .ToArray()).ToArray();
+                systemInput.AddRange(extraEntities.Select(kv => new Bolt.World.EntityType(kv.Key, new[] { kv.Value })));
 
+            var authority = Web3Utils.SessionWallet?.Account?.PublicKey ?? Web3.Wallet.Account.PublicKey;
+            var ix = Bolt.World.ApplySystem(new PublicKey(WorldPda), systemAddress,
+                systemInput.ToArray(), args, authority, Web3Utils.SessionWallet?.SessionTokenPDA);
 
-            var authority = Web3Utils.SessionToken == null || ignoreSession
-                ? Web3.Wallet.Account.PublicKey
-                : Web3Utils.SessionWallet.Account.PublicKey;
+            if (extraAccounts != null)
+                foreach (var account in extraAccounts)
+                    ix.Keys.Add(account);
 
-            return WorldProgram.ApplySystem(
-                new PublicKey(WorldPda),
-                systemAddress,
-                input,
-                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(args)),
-                authority,
-                ignoreSession ? null : Web3Utils.SessionWallet?.SessionTokenPDA);
+            Debug.Log($"Applying System {systemAddress} with args.. :  {JsonConvert.SerializeObject(args)}");
+            return await ExecuteSystemApplicationInstruction(ix);
         }
-
-        private TransactionInstruction GetSystemApplicationInstructionFromDataAddress(
-            PublicKey systemAddress,
-            byte[] args, bool ignoreSession = false)
-        {
-            TransactionInstruction transactionInstruction;
-            if (Web3Utils.SessionToken?.SessionSigner != null && !ignoreSession)
-                transactionInstruction = WorldProgram.ApplyWithSession(new ApplyWithSessionAccounts()
-                {
-                    BoltSystem = systemAddress,
-                    Authority = Web3Utils.SessionWallet.Account.PublicKey,
-                    World = new PublicKey(WorldPda),
-                    SessionToken = Web3Utils.SessionWallet?.SessionTokenPDA
-                }, args, new PublicKey(WorldProgram.ID));
-            else
-                transactionInstruction = WorldProgram.Apply(new ApplyAccounts()
-                {
-                    BoltSystem = systemAddress,
-                    Authority = Web3.Account.PublicKey,
-                    World = new PublicKey(WorldPda)
-                }, args, new PublicKey(WorldProgram.ID));
-
-            transactionInstruction.Keys.Add(AccountMeta.ReadOnly(GetComponentProgramAddress(), false));
-            transactionInstruction.Keys.Add(AccountMeta.Writable(new PublicKey(_dataAddress), false));
-            transactionInstruction.Keys.Add(AccountMeta.ReadOnly(new PublicKey(WorldProgram.ID), false));
-
-            return transactionInstruction;
-        }
-
 
         private async UniTask<bool> ExecuteSystemApplicationInstruction(
-            TransactionInstruction systemApplicationInstruction, bool ignoreSession = false)
+            TransactionInstruction systemApplicationInstruction)
         {
-            var walletAccount = Web3Utils.SessionToken == null || ignoreSession
+            var walletAccount = Web3Utils.SessionToken == null
                 ? Wallet.Account
                 : Web3Utils.SessionWallet.Account;
             var signers = new List<Account>
@@ -482,34 +425,6 @@ namespace Connectors
             Debug.Log($"System Application Result: {signature.WasSuccessful} {signature.Result}");
             return true;
         }
-
-
-        // var latestBlockHash = await RpcClient.GetLatestBlockHashAsync(commitment: Commitment.Processed);
-        //     var tx = new Transaction
-        //     {
-        //         FeePayer = Web3.Account,
-        //         Instructions = new List<TransactionInstruction>
-        //         {
-        //             systemApplicationInstruction,
-        //             ComputeBudgetProgram.SetComputeUnitLimit(500000)
-        //         },
-        //         RecentBlockHash = latestBlockHash.Result.Value.Blockhash
-        //     };
-        //
-        //     var signedTx = await Web3.Wallet.SignTransaction(tx);
-        //     var result = await RpcClient.SendTransactionAsync(
-        //         Convert.ToBase64String(signedTx.Serialize()),
-        //         skipPreflight: true, preFlightCommitment: Commitment.Confirmed);
-        //
-        //     Debug.Log($"System Application Result: {result.WasSuccessful} {result.Result}");
-        //
-        //     if (!result.WasSuccessful)
-        //         Debug.LogError($"System Application ErrorReason: {result.Reason}");
-        //
-        //     await RpcClient.ConfirmTransaction(result.Result, Commitment.Processed);
-        //     return result.WasSuccessful;
-        // }
-
 
         public async UniTask<Transaction> DelegateTransaction(PublicKey entityPda, PublicKey playerDataPda)
         {

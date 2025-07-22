@@ -28,24 +28,24 @@ namespace View.Exploration
             //load own hero first
             var renderHero = Instantiate(prefab, transform);
             await renderHero.SetEntity(_player.EntityPda);
-            
+
             //load others after
-            
+
             var list = new List<Solana.Unity.Rpc.Models.MemCmp>
                 { new() { Bytes = Hero.Accounts.Hero.ACCOUNT_DISCRIMINATOR_B58, Offset = 0 } };
 
-            var accounts = (await Web3.Rpc.GetProgramAccountsAsync(
+            var accounts = (await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
                 new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result;
 
-            //concat with rollup accounts            
-            accounts = accounts.Concat((await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
-                new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result).ToList();
+            // //concat with rollup accounts            
+            // accounts = accounts.Concat((await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
+            //     new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result).ToList();
 
             foreach (var account in accounts)
             {
                 if (account.PublicKey == renderHero.DataAddress)
                     continue;
-                
+
                 try
                 {
                     renderHero = Instantiate(prefab, transform);

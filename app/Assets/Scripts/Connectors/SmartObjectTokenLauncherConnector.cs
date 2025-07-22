@@ -42,8 +42,7 @@ namespace Connectors
             var systemAddress = new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap");
             return await ApplySystem(systemAddress,
                 new { token_name, token_symbol, token_uri, recipe_food, recipe_water, recipe_wood, recipe_stone }, null,
-                true,
-                _token.GetCreateExtraAccounts(mintPublicKey, systemAddress), true);
+                _token.GetCreateExtraAccounts(mintPublicKey, systemAddress));
         }
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
@@ -64,9 +63,8 @@ namespace Connectors
                     {
                         new PublicKey(_hero.EntityPda), _hero.GetComponentProgramAddress()
                     }
-                }, false,
-                GetMintExtraAccounts(systemAddress, mint)
-                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray(), true);
+                }, GetMintExtraAccounts(systemAddress, mint)
+                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray());
 
 
             //re-delegate

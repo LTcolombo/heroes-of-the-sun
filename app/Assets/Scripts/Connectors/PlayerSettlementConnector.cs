@@ -19,11 +19,11 @@ namespace Connectors
         [Inject] private TokenConnector _token;
 
         protected override UniTask<bool> ApplySystem(PublicKey systemAddress, object args,
-            Dictionary<PublicKey, PublicKey> extraEntities = null, bool useDataAddress = false,
-            AccountMeta[] accounts = null, bool ignoreSession = false)
+            Dictionary<PublicKey, PublicKey> extraEntities = null,
+            AccountMeta[] accounts = null)
         {
             _stopFtue.Dispatch();
-            return base.ApplySystem(systemAddress, args, extraEntities, useDataAddress, accounts, ignoreSession);
+            return base.ApplySystem(systemAddress, args, extraEntities, accounts);
         }
 
         public async UniTask<bool> Build(byte x, byte y, byte type, int worker_index)
@@ -87,8 +87,8 @@ namespace Connectors
 
             //2. apply
             var result = await ApplySystem(new PublicKey("Csna3V2jUMdQEQKUCxLsQEnYThAGPSWcPCxW9vea1S8d"),
-                new { tokens_for_food, tokens_for_water, tokens_for_wood, tokens_for_stone }, null, false,
-                _token.GetBurnExtraAccounts(), true);
+                new { tokens_for_food, tokens_for_water, tokens_for_wood, tokens_for_stone }, null,
+                _token.GetBurnExtraAccounts());
 
             //re-delegate
             await Delegate();

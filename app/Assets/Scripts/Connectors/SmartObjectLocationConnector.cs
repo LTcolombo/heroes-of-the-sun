@@ -29,7 +29,7 @@ namespace Connectors
         {
             var entity = new PublicKey(EntityPda).KeyBytes.Select(b => (int)b).ToArray();
             return await ApplySystem(new PublicKey("64Uk4oF6mNyviUdK2xHXE3VMCtbCMDgRr1DMJk777DJZ"),
-                new { x, y, entity }, null, true);
+                new { x, y, entity });
         }
     }
 }
