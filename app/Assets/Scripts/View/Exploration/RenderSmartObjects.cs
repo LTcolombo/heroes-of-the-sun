@@ -50,7 +50,7 @@ namespace View.Exploration
                 if (!_cache.ContainsKey(account.PublicKey))
                 {
                     var renderSmartObject = Instantiate(prefab, transform);
-                    _ = renderSmartObject.SetDataAddress(account.PublicKey);
+                    await renderSmartObject.SetDataAddress(account.PublicKey);
                     _cache[account.PublicKey] = renderSmartObject;
                 }
                 else

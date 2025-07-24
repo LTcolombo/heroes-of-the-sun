@@ -33,13 +33,15 @@ namespace View.UI.World
 
         private float _goldCost;
         private ResourceBalance _resourceCost;
+        private bool _metadataLoaded;
 
         public void SetData(MetadataAccountV3 value, ResourceBalance cost, float goldCost)
         {
             _resourceCost = cost;
             _goldCost = goldCost;
 
-            StartCoroutine(LoadMetadata(value.Uri));
+            if (!_metadataLoaded)
+                StartCoroutine(LoadMetadata(value.Uri));
 
             OnQuantityUpdated();
         }
@@ -121,6 +123,8 @@ namespace View.UI.World
                 new Rect(0, 0, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f)
             );
+
+            _metadataLoaded = true;
         }
     }
 }

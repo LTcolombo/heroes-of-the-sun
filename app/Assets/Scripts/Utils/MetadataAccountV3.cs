@@ -1,3 +1,6 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace Utils
 {
     using System;
@@ -6,10 +9,47 @@ namespace Utils
     using Solana.Unity.Programs.Utilities;
     using Solana.Unity.Wallet;
 
+    public class PublicKeyConverter : JsonConverter<PublicKey>
+    {
+        public override PublicKey ReadJson(JsonReader reader, Type objectType, PublicKey existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            var token = JToken.Load(reader);
+
+            // Handles case where JSON is a full object: { "Key": "...", "KeyBytes": "..." }
+            if (token.Type == JTokenType.Object && token["Key"] != null)
+            {
+                var keyString = token["Key"].ToString();
+                return new PublicKey(keyString);
+            }
+
+            // Handles simple string key case (if needed)
+            if (token.Type == JTokenType.String)
+            {
+                return new PublicKey(token.ToString());
+            }
+
+            throw new JsonSerializationException("Unexpected token when parsing PublicKey.");
+        }
+
+        public override void WriteJson(JsonWriter writer, PublicKey value, JsonSerializer serializer)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("Key");
+            writer.WriteValue(value.Key);
+            writer.WritePropertyName("KeyBytes");
+            writer.WriteValue(Convert.ToBase64String(value.KeyBytes));
+            writer.WriteEndObject();
+        }
+    }
+    
     public class MetadataAccountV3
     {
         public byte Key;
+        
+        [JsonConverter(typeof(PublicKeyConverter))]
         public PublicKey UpdateAuthority;
+        
+        [JsonConverter(typeof(PublicKeyConverter))]
         public PublicKey Mint;
         public string Name;
         public string Symbol;

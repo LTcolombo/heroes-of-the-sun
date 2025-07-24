@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Model;
+using Newtonsoft.Json;
 using Solana.Unity.Metaplex.NFT.Library;
 using Solana.Unity.Metaplex.Utilities;
 using Solana.Unity.Programs;
@@ -137,17 +138,38 @@ namespace Connectors
 
         public async Task<MetadataAccountV3> LoadMetadata(PublicKey mintAddress)
         {
+            var metadata = GetCachedMetadata(mintAddress);
+            if (metadata != null)
+                return metadata;
+
             var metadataPda = PDALookup.FindMetadataPDA(mintAddress);
 
             var metadataAccountInfo = await Web3.Rpc.GetAccountInfoAsync(metadataPda, Commitment.Processed);
             if (!metadataAccountInfo.WasSuccessful || metadataAccountInfo.Result?.Value?.Data == null)
             {
-                Debug.LogWarning("Unable to fetch metadata account: " + mintAddress);
+                Debug.LogWarning("[Token Launcher] Unable to fetch metadata account: " + mintAddress);
                 return null;
             }
 
             var rawData = Convert.FromBase64String(metadataAccountInfo.Result.Value.Data[0]);
-            return MetadataAccountV3.Deserialize(rawData);
+            metadata = MetadataAccountV3.Deserialize(rawData);
+
+            AddMetadataToCache(mintAddress, metadata);
+            return metadata;
+        }
+
+
+        private const string Tag = "METADATA_CACHE";
+
+        private static void AddMetadataToCache(PublicKey mintAddress, MetadataAccountV3 metadata)
+        {
+            PlayerPrefs.SetString($"{Tag}_{mintAddress}", JsonConvert.SerializeObject(metadata));
+        }
+
+        private static MetadataAccountV3 GetCachedMetadata(PublicKey mintAddress)
+        {
+            var metadataJson = PlayerPrefs.GetString($"{Tag}_{mintAddress}", null);
+            return metadataJson == null ? null : JsonConvert.DeserializeObject<MetadataAccountV3>(metadataJson);
         }
 
         /// <summary>

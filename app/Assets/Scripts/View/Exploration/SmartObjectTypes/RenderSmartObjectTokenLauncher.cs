@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Connectors;
 using Model;
+using Newtonsoft.Json;
 using Notifications;
 using Smartobjecttokenlauncher.Accounts;
 using Solana.Unity.Programs;
@@ -100,12 +101,28 @@ namespace View.Exploration.SmartObjectTypes
         {
             try
             {
-                var data = await _token.LoadMetadata(_data.Mint);
-                if (data == null)
+                if (_data == null)
+                    return;
+
+
+                if (_data.Mint == PublicKey.DefaultPublicKey)//invalid token
                 {
-                    Destroy(gameObject);
+                    if (gameObject)
+                        Destroy(gameObject);
                     return;
                 }
+                
+                Debug.Log("[TokenLauncher] mint address: " + _data.Mint);
+                var metadata = await _token.LoadMetadata(_data.Mint);
+                Debug.Log($"[TokenLauncher] metadata [{_data.Mint}] : {JsonConvert.SerializeObject(metadata)}");
+                if (metadata == null)
+                {
+                    if (gameObject)
+                        Destroy(gameObject);
+                    return;
+                }
+
+
                 var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint, Commitment.Processed);
                 var mintData = mintAccount.Result?.Value?.Data[0];
 
@@ -114,12 +131,13 @@ namespace View.Exploration.SmartObjectTypes
 
                 var mintBytes = Convert.FromBase64String(mintData);
                 var mint = TokenMint.Deserialize(mintBytes);
+                Debug.Log("[TokenLauncher] mint data: " + JsonConvert.SerializeObject(mint));
                 var supply = mint.Supply;
                 var price = TokenConnector.CalculateTokenPrice(supply);
                 Debug.Log($"[TokenLauncher] Current token price (bonding curve): {price}");
 
                 tokenInfo.gameObject.SetActive(true);
-                tokenInfo.SetData(data, _data.Recipe, price);
+                tokenInfo.SetData(metadata, _data.Recipe, price);
             }
             catch (Exception e)
             {
