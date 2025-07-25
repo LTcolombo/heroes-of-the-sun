@@ -20,7 +20,7 @@ pub mod exchange {
             return err!(errors::ExchangeError::NoExchange);
         }
 
-        msg!("execute exchange!: ");
+        msg!("execute exchange!: {}", total_cost);
 
         let minter_program = ctx
             .minter_program()
@@ -76,15 +76,19 @@ pub mod exchange {
 
         settlement.treasury.food +=
             args.tokens_for_food as u16 * settlement::config::EXCHANGE_RATES.food;
+        msg!("adding food: {}", args.tokens_for_food as u16 * settlement::config::EXCHANGE_RATES.food);
 
         settlement.treasury.water +=
             args.tokens_for_water as u16 * settlement::config::EXCHANGE_RATES.water;
+        msg!("adding food: {water}", args.tokens_for_water as u16 * settlement::config::EXCHANGE_RATES.water);
 
         settlement.treasury.wood +=
             args.tokens_for_wood as u16 * settlement::config::EXCHANGE_RATES.wood;
+        msg!("adding wood: {}", args.tokens_for_wood as u16 * settlement::config::EXCHANGE_RATES.wood);
 
         settlement.treasury.stone +=
             args.tokens_for_stone as u16 * settlement::config::EXCHANGE_RATES.stone;
+        msg!("adding stone: {}", args.tokens_for_stone as u16 * settlement::config::EXCHANGE_RATES.stone);
 
         Ok(ctx.accounts)
     }

@@ -161,7 +161,7 @@ namespace Connectors
             {
                 var resUndelegation = await Wallet.SignAndSendTransaction(txUndelegate, true);
                 await RpcClient.ConfirmTransaction(resUndelegation.Result, Commitment.Confirmed);
-                
+
                 Debug.Log($"Undelegate Signature: {resUndelegation.Result}");
 
                 if (resUndelegation.WasSuccessful)
@@ -171,16 +171,27 @@ namespace Connectors
                     string scheduledTx = null;
                     foreach (var message in messages)
                     {
+                        Debug.Log($"Message: {message}");
                         if (message.Contains("signature"))
+                        {
                             scheduledTx = message.Split(": ")[1];
+                            Debug.Log($"scheduledTx: {scheduledTx}");
+                            break;
+                        }
                     }
 
+                    await RpcClient.ConfirmTransaction(scheduledTx, Commitment.Confirmed);
                     tx = await RpcClient.GetTransactionAsync(scheduledTx, Commitment.Processed);
                     messages = tx.Result.Meta.LogMessages;
                     foreach (var message in messages)
                     {
+                        Debug.Log($"Message: {message}");
                         if (message.Contains("signature"))
+                        {
                             scheduledTx = message.Split(": ")[1];
+                            Debug.Log($"scheduledTx: {scheduledTx}");
+                            break;
+                        }
                     }
 
                     await Web3.Wallet.ActiveRpcClient.ConfirmTransaction(scheduledTx, Commitment.Confirmed);
@@ -410,7 +421,8 @@ namespace Connectors
             var signature = await RpcClient.SendTransactionAsync(transaction, true, Commitment.Confirmed);
             if (!signature.WasSuccessful)
             {
-                string errorMessage = signature.Reason;
+                var errorMessage = "Failed At: " + RpcClient.NodeAddress.AbsoluteUri;
+                errorMessage += "\n" + signature.Reason;
                 errorMessage += "\n" + signature.RawRpcResponse;
                 if (signature.ErrorData != null)
                 {

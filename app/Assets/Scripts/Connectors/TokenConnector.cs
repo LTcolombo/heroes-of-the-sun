@@ -120,15 +120,14 @@ namespace Connectors
 
         public AccountMeta[] GetBurnExtraAccounts()
         {
-            var authority = true // Web3Utils.SessionToken == null
+            var authority = Web3Utils.SessionToken == null
                 ? Web3.Wallet.Account
                 : Web3Utils.SessionWallet.Account;
-
-
+            
             return new[]
             {
                 AccountMeta.Writable(authority, true),
-                AccountMeta.Writable(new PublicKey(AssociatedTokenAccount), false),
+                AccountMeta.Writable(new PublicKey(AssociatedTokenAccountSession), false),
                 AccountMeta.Writable(new PublicKey(TokenMintPda), false),
                 AccountMeta.ReadOnly(new PublicKey(TokenMinterProgramID), false),
                 AccountMeta.ReadOnly(TokenProgram.ProgramIdKey, false),

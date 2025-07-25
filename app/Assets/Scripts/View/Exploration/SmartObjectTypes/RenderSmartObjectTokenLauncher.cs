@@ -103,8 +103,7 @@ namespace View.Exploration.SmartObjectTypes
             {
                 if (_data == null)
                     return;
-
-
+                
                 if (_data.Mint == PublicKey.DefaultPublicKey)//invalid token
                 {
                     if (gameObject)
@@ -114,6 +113,7 @@ namespace View.Exploration.SmartObjectTypes
                 
                 Debug.Log("[TokenLauncher] mint address: " + _data.Mint);
                 var metadata = await _token.LoadMetadata(_data.Mint);
+                
                 Debug.Log($"[TokenLauncher] metadata [{_data.Mint}] : {JsonConvert.SerializeObject(metadata)}");
                 if (metadata == null)
                 {
@@ -121,8 +121,7 @@ namespace View.Exploration.SmartObjectTypes
                         Destroy(gameObject);
                     return;
                 }
-
-
+                
                 var mintAccount = await Web3.Rpc.GetAccountInfoAsync(_data.Mint, Commitment.Processed);
                 var mintData = mintAccount.Result?.Value?.Data[0];
 
@@ -132,6 +131,7 @@ namespace View.Exploration.SmartObjectTypes
                 var mintBytes = Convert.FromBase64String(mintData);
                 var mint = TokenMint.Deserialize(mintBytes);
                 Debug.Log("[TokenLauncher] mint data: " + JsonConvert.SerializeObject(mint));
+                
                 var supply = mint.Supply;
                 var price = TokenConnector.CalculateTokenPrice(supply);
                 Debug.Log($"[TokenLauncher] Current token price (bonding curve): {price}");

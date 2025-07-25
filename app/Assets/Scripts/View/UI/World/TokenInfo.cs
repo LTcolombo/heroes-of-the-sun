@@ -35,6 +35,12 @@ namespace View.UI.World
         private ResourceBalance _resourceCost;
         private bool _metadataLoaded;
 
+        protected override void Awake()
+        {
+            base.Awake();
+            CacheDir = System.IO.Path.Combine(Application.persistentDataPath, "cache");
+        }
+        
         public void SetData(MetadataAccountV3 value, ResourceBalance cost, float goldCost)
         {
             _resourceCost = cost;
@@ -87,37 +93,83 @@ namespace View.UI.World
                 hasEnoughFood && hasEnoughWood && hasEnoughWater && hasEnoughStone && hasEnoughGold;
         }
 
+        private static string CacheDir;
+
         private IEnumerator LoadMetadata(string url)
         {
-            // Step 1: Load metadata JSON
-            using var request = UnityWebRequest.Get(url);
-            request.downloadHandler = new DownloadHandlerBuffer();
-            yield return request.SendWebRequest();
+            if (!System.IO.Directory.Exists(CacheDir))
+                System.IO.Directory.CreateDirectory(CacheDir);
 
-            if (request.result != UnityWebRequest.Result.Success)
+            var cid = ExtractCidFromUrl(url);
+            var jsonPath = System.IO.Path.Combine(CacheDir, $"{cid}.meta.json");
+            string json;
+
+            if (System.IO.File.Exists(jsonPath))
             {
-                Debug.LogError("Failed to load metadata: " + request.error);
-                yield break;
+                json = System.IO.File.ReadAllText(jsonPath);
+            }
+            else
+            {
+                using var request = UnityWebRequest.Get(url);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                yield return request.SendWebRequest();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError("Failed to load metadata: " + request.error);
+                    yield break;
+                }
+
+                json = request.downloadHandler.text;
+
+                try
+                {
+                    System.IO.File.WriteAllText(jsonPath, json);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("Failed to cache metadata: " + e.Message);
+                }
             }
 
-            var json = request.downloadHandler.text;
             var metadata = JsonUtility.FromJson<ManageTokenCreation.SolanaMetadata>(json);
-
-            // Update UI with name and description
             nameText.text = $"{metadata.name} <color=yellow>({metadata.symbol})</color>";
             descText.text = metadata.description;
 
-            // Step 2: Load image
-            using var imgRequest = UnityWebRequestTexture.GetTexture(metadata.image);
-            yield return imgRequest.SendWebRequest();
+            var imgCid = ExtractCidFromUrl(metadata.image);
+            var imgPath = System.IO.Path.Combine(CacheDir, $"{imgCid}.image.png");
+            Texture2D texture;
 
-            if (imgRequest.result != UnityWebRequest.Result.Success)
+            if (System.IO.File.Exists(imgPath))
             {
-                Debug.LogError("Failed to load image: " + imgRequest.error);
-                yield break;
+                var imgBytes = System.IO.File.ReadAllBytes(imgPath);
+                texture = new Texture2D(2, 2);
+                texture.LoadImage(imgBytes);
+            }
+            else
+            {
+                using var imgRequest = UnityWebRequestTexture.GetTexture(metadata.image);
+                yield return imgRequest.SendWebRequest();
+
+                if (imgRequest.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError("Failed to load image: " + imgRequest.error);
+                    yield break;
+                }
+
+                texture = ((DownloadHandlerTexture)imgRequest.downloadHandler).texture;
+
+                try
+                {
+                    var pngBytes = texture.EncodeToPNG();
+                    System.IO.File.WriteAllBytes(imgPath, pngBytes);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("Failed to cache image: " + e.Message);
+                }
             }
 
-            var texture = ((DownloadHandlerTexture)imgRequest.downloadHandler).texture;
             iconImage.sprite = Sprite.Create(
                 texture,
                 new Rect(0, 0, texture.width, texture.height),
@@ -125,6 +177,18 @@ namespace View.UI.World
             );
 
             _metadataLoaded = true;
+        }
+
+        private string ExtractCidFromUrl(string url)
+        {
+            var parts = url.Split(new[] { '/' }, System.StringSplitOptions.RemoveEmptyEntries);
+            var ipfsIndex = System.Array.IndexOf(parts, "ipfs");
+            if (ipfsIndex >= 0 && ipfsIndex + 1 < parts.Length)
+            {
+                return parts[ipfsIndex + 1];
+            }
+            Debug.LogWarning("Could not extract CID from URL: " + url);
+            return System.IO.Path.GetFileNameWithoutExtension(url); // fallback
         }
     }
 }
