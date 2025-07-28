@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Connectors;
@@ -13,7 +12,6 @@ using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
-using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -97,9 +95,6 @@ namespace View.UI
 
         public void OpenImage()
         {
-            PickRandomTokenIcon();
-
-            return;
 #if UNITY_EDITOR
 
             var path = EditorUtility.OpenFilePanel("Select PNG Image", "", "png");
@@ -125,8 +120,11 @@ namespace View.UI
                 Debug.LogError("Failed to load texture from PNG.");
             }
 
-#else
+#elif UNITY_WEBGL
             UploadFile(gameObject.name, nameof(OnFileUploaded), ".png");
+#else
+            PickRandomTokenIcon();
+
 #endif
         }
 
