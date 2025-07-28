@@ -28,5 +28,11 @@ namespace StompyRobot.SROptions
             if (await _connector.Reset())
                 _model.Set(await _connector.LoadData());
         }
+
+        public async void ClaimLoot()
+        {
+            var connector = (LootDistributionConnector)Injector.Instance.GetValue(typeof(LootDistributionConnector));
+            await connector.Claim(0);
+        }
     }
 }

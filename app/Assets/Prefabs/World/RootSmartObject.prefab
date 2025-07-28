@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   renderers:
-  - componentAddress: 9RfzWgEBYQAM64a46V3dGRPKYsVY8a7YvZszWPMxvBfk
-    prefab: {fileID: 1149535237560096, guid: dca3cda944fce4060930d52f66c3ff55, type: 3}
   - componentAddress: 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3
     prefab: {fileID: 1149535237560096, guid: f07fbfebc8e0b4594a144d4595fc106b, type: 3}
+  - componentAddress: 9RfzWgEBYQAM64a46V3dGRPKYsVY8a7YvZszWPMxvBfk
+    prefab: {fileID: 1149535237560096, guid: dca3cda944fce4060930d52f66c3ff55, type: 3}

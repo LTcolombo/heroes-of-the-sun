@@ -8,6 +8,7 @@ using Solana.Unity.Programs;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
+using UnityEngine;
 using Utils;
 using Utils.Injection;
 
@@ -23,6 +24,8 @@ namespace Connectors
 
         protected override SmartObjectTokenLauncher DeserialiseBytes(byte[] value)
         {
+            var encoded = System.Convert.ToBase64String(value);
+            PlayerPrefs.SetString(DataAddress, encoded);
             return SmartObjectTokenLauncher.Deserialize(value);
         }
 
@@ -39,10 +42,10 @@ namespace Connectors
         public async Task<bool> Init(string token_name, string token_symbol, string token_uri, PublicKey mintPublicKey,
             ushort recipe_food, ushort recipe_water, ushort recipe_wood, ushort recipe_stone)
         {
-            var systemAddress = new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap");
-            return await ApplySystem(systemAddress,
+            var initSystemAddress = new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap");
+            return await ApplySystem(initSystemAddress,
                 new { token_name, token_symbol, token_uri, recipe_food, recipe_water, recipe_wood, recipe_stone }, null,
-                _token.GetCreateExtraAccounts(mintPublicKey, systemAddress));
+                _token.GetCreateExtraAccounts(mintPublicKey, initSystemAddress), true);
         }
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
@@ -64,7 +67,7 @@ namespace Connectors
                         new PublicKey(_hero.EntityPda), _hero.GetComponentProgramAddress()
                     }
                 }, GetMintExtraAccounts(systemAddress, mint)
-                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray());
+                    .Concat(_token.GetTransferExtraAccounts(new(DataAddress))).ToArray(), true);
 
 
             //re-delegate
@@ -78,9 +81,7 @@ namespace Connectors
 
         private AccountMeta[] GetMintExtraAccounts(PublicKey systemAddress, PublicKey mint)
         {
-            var authority = Web3Utils.SessionToken == null
-                ? Web3.Wallet.Account
-                : Web3Utils.SessionWallet.Account;
+            var authority = Web3.Wallet.Account;
 
             var mintExtraAccounts = new List<AccountMeta>
             {

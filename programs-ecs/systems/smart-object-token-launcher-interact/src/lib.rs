@@ -36,7 +36,6 @@ pub mod smart_object_token_launcher_interact {
         let token_program = ctx
             .token_program()
             .map_err(|_| ProgramError::InvalidAccountData)?;
-
         msg!("token_program: {}", token_program.key);
 
         let launcher = &mut ctx.accounts.launcher;
@@ -102,9 +101,16 @@ pub mod smart_object_token_launcher_interact {
         let payment_token_account = ctx
             .payment_token_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!(
+            "from (payment_token_account): {}",
+            payment_token_account.key()
+        );
+        msg!("from data len: {}", payment_token_account.data_len());
+
         let payment_token_authority = ctx
             .payment_token_authority()
             .map_err(|_| ProgramError::InvalidAccountData)?;
+        msg!("payment_token_authority: {}", payment_token_authority.key());
 
         let full_token_supply = mint.supply / 1_000_000_000;
         let base_price = 1.0;
@@ -125,15 +131,6 @@ pub mod smart_object_token_launcher_interact {
             "Token account authority: {}",
             payment_token_account_data.owner
         );
-        msg!(
-            "Provided payment_token_authority: {}",
-            payment_token_authority.key()
-        );
-
-        msg!(
-            "from (payment_token_account): {}",
-            payment_token_account.key()
-        );
 
         let payment_token_program = ctx
             .token_program()
@@ -141,19 +138,10 @@ pub mod smart_object_token_launcher_interact {
         let destination_token_account = ctx
             .destination_token_account()
             .map_err(|_| ProgramError::InvalidAccountData)?;
-        // let destination_pda = ctx
-        //     .destination_pda()
-        //     .map_err(|_| ProgramError::InvalidAccountData)?;
-
         msg!(
             "to   (destination_token_account): {}",
             destination_token_account.key()
         );
-        msg!("authority: {}", payment_token_authority.key());
-
-        msg!("from.owner: {}", payment_token_account.owner);
-        msg!("to.owner: {}", destination_token_account.owner);
-        msg!("from data len: {}", payment_token_account.data_len());
         msg!("to data len: {}", destination_token_account.data_len());
 
         let transfer_ctx = CpiContext::new(

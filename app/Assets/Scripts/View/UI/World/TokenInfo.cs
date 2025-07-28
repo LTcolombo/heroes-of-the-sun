@@ -100,11 +100,13 @@ namespace View.UI.World
             if (!System.IO.Directory.Exists(CacheDir))
                 System.IO.Directory.CreateDirectory(CacheDir);
 
+            bool isWebGL = Application.platform == RuntimePlatform.WebGLPlayer;
+
             var cid = ExtractCidFromUrl(url);
             var jsonPath = System.IO.Path.Combine(CacheDir, $"{cid}.meta.json");
             string json;
 
-            if (System.IO.File.Exists(jsonPath))
+            if (!isWebGL && System.IO.File.Exists(jsonPath))
             {
                 json = System.IO.File.ReadAllText(jsonPath);
             }
@@ -122,13 +124,16 @@ namespace View.UI.World
 
                 json = request.downloadHandler.text;
 
-                try
+                if (!isWebGL)
                 {
-                    System.IO.File.WriteAllText(jsonPath, json);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning("Failed to cache metadata: " + e.Message);
+                    try
+                    {
+                        System.IO.File.WriteAllText(jsonPath, json);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning("Failed to cache metadata: " + e.Message);
+                    }
                 }
             }
 
@@ -140,7 +145,7 @@ namespace View.UI.World
             var imgPath = System.IO.Path.Combine(CacheDir, $"{imgCid}.image.png");
             Texture2D texture;
 
-            if (System.IO.File.Exists(imgPath))
+            if (!isWebGL && System.IO.File.Exists(imgPath))
             {
                 var imgBytes = System.IO.File.ReadAllBytes(imgPath);
                 texture = new Texture2D(2, 2);
@@ -159,14 +164,17 @@ namespace View.UI.World
 
                 texture = ((DownloadHandlerTexture)imgRequest.downloadHandler).texture;
 
-                try
+                if (!isWebGL)
                 {
-                    var pngBytes = texture.EncodeToPNG();
-                    System.IO.File.WriteAllBytes(imgPath, pngBytes);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning("Failed to cache image: " + e.Message);
+                    try
+                    {
+                        var pngBytes = texture.EncodeToPNG();
+                        System.IO.File.WriteAllBytes(imgPath, pngBytes);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning("Failed to cache image: " + e.Message);
+                    }
                 }
             }
 

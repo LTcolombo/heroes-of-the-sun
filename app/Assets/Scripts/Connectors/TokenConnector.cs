@@ -69,9 +69,7 @@ namespace Connectors
 
         public AccountMeta[] GetCreateExtraAccounts(PublicKey mint, PublicKey system)
         {
-            var authority = Web3Utils.SessionToken == null
-                ? Web3.Wallet.Account
-                : Web3Utils.SessionWallet.Account;
+            var authority = Web3.Wallet.Account;
 
             var extraAccounts = new List<AccountMeta>
             {
@@ -85,10 +83,10 @@ namespace Connectors
                 AccountMeta.ReadOnly(new PublicKey("SysvarRent111111111111111111111111111111111"), false),
             };
 
-            if (Web3Utils.SessionWallet?.SessionTokenPDA != null)
-            {
-                extraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
-            }
+            // if (Web3Utils.SessionWallet?.SessionTokenPDA != null)
+            // {
+            //     extraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
+            // }
 
             return extraAccounts.ToArray();
         }
@@ -120,14 +118,12 @@ namespace Connectors
 
         public AccountMeta[] GetBurnExtraAccounts()
         {
-            var authority = Web3Utils.SessionToken == null
-                ? Web3.Wallet.Account
-                : Web3Utils.SessionWallet.Account;
+            var authority = Web3.Wallet.Account;
             
             return new[]
             {
                 AccountMeta.Writable(authority, true),
-                AccountMeta.Writable(new PublicKey(AssociatedTokenAccountSession), false),
+                AccountMeta.Writable(new PublicKey(AssociatedTokenAccount), false),
                 AccountMeta.Writable(new PublicKey(TokenMintPda), false),
                 AccountMeta.ReadOnly(new PublicKey(TokenMinterProgramID), false),
                 AccountMeta.ReadOnly(TokenProgram.ProgramIdKey, false),
@@ -179,16 +175,14 @@ namespace Connectors
         /// <returns>Array of AccountMeta objects representing the required accounts.</returns>
         public AccountMeta[] GetTransferExtraAccounts(PublicKey vaultPda)
         {
-            var authority = Web3Utils.SessionToken == null
-                ? Web3.Wallet.Account
-                : Web3Utils.SessionWallet.Account;
+            var authority = Web3.Wallet.Account;
 
             var userAta = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(authority, new(TokenMintPda));
             var vaultAta = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(vaultPda, new(TokenMintPda));
 
             var accounts = new List<AccountMeta>
             {
-                AccountMeta.Writable(new(TokenMintPda), false), // payment_mint_account
+                // AccountMeta.Writable(new(TokenMintPda), false), // payment_mint_account
                 AccountMeta.Writable(userAta, false), // payment_token_account
                 AccountMeta.Writable(authority, true), // payment_token_authority
                 AccountMeta.Writable(vaultAta, false), // destination_token_account

@@ -26,7 +26,6 @@ using UndelegateAccounts = Settlement.Program.UndelegateAccounts;
 
 namespace Connectors
 {
-    // [Singleton]
     public abstract class BaseComponentConnector<T> : InjectableObject
     {
         private WalletBase Wallet => _delegated
@@ -289,12 +288,18 @@ namespace Connectors
                 _dataAddress = dataAddress;
             }
         }
-
-
-        public async UniTask<T> LoadData()
+        
+        public virtual async UniTask<T> LoadData()
         {
             if (string.IsNullOrEmpty(_dataAddress))
                 return default;
+            
+            if (PlayerPrefs.HasKey(DataAddress))
+            {
+                var cached = PlayerPrefs.GetString(DataAddress);
+                var cachedBytes = Convert.FromBase64String(cached);
+                return DeserialiseBytes(cachedBytes);
+            }
 
             var res = await RpcClient.GetAccountInfoAsync(new PublicKey(_dataAddress),
                 Commitment.Processed);
@@ -376,7 +381,8 @@ namespace Connectors
         protected abstract T DeserialiseBytes(byte[] value);
 
         protected virtual async UniTask<bool> ApplySystem(PublicKey systemAddress, object args,
-            Dictionary<PublicKey, PublicKey> extraEntities = null, AccountMeta[] extraAccounts = null)
+            Dictionary<PublicKey, PublicKey> extraEntities = null, AccountMeta[] extraAccounts = null,
+            bool forceMainWalletSigner = false)
         {
             var systemInput = new List<Bolt.World.EntityType>
                 { new(new PublicKey(_entityPda), new[] { GetComponentProgramAddress() }) };
@@ -384,35 +390,37 @@ namespace Connectors
             if (extraEntities != null)
                 systemInput.AddRange(extraEntities.Select(kv => new Bolt.World.EntityType(kv.Key, new[] { kv.Value })));
 
-            var authority = Web3Utils.SessionWallet?.Account?.PublicKey ?? Web3.Wallet.Account.PublicKey;
+            var authority = forceMainWalletSigner || Web3Utils.SessionWallet?.Account?.PublicKey == null
+                ? Web3.Wallet.Account.PublicKey
+                : Web3Utils.SessionWallet.Account.PublicKey;
+            
             var ix = Bolt.World.ApplySystem(new PublicKey(WorldPda), systemAddress,
-                systemInput.ToArray(), args, authority, Web3Utils.SessionWallet?.SessionTokenPDA);
+                systemInput.ToArray(), args, authority,
+                forceMainWalletSigner ? null : Web3Utils.SessionWallet?.SessionTokenPDA);
 
             if (extraAccounts != null)
                 foreach (var account in extraAccounts)
                     ix.Keys.Add(account);
 
             Debug.Log($"Applying System {systemAddress} with args.. :  {JsonConvert.SerializeObject(args)}");
-            return await ExecuteSystemApplicationInstruction(ix);
+            return await ExecuteSystemApplicationInstruction(ix, forceMainWalletSigner);
         }
 
         private async UniTask<bool> ExecuteSystemApplicationInstruction(
-            TransactionInstruction systemApplicationInstruction)
+            TransactionInstruction systemApplicationInstruction, bool signWithWallet)
         {
-            var walletAccount = Web3Utils.SessionToken == null
+            var signerAccount = Web3Utils.SessionToken == null || signWithWallet
                 ? Wallet.Account
                 : Web3Utils.SessionWallet.Account;
-            var signers = new List<Account>
-            {
-                walletAccount
-            };
+
+            var signers = new List<Account> { signerAccount };
 
             var blockHashResponse = await RpcClient.GetLatestBlockHashAsync(Commitment.Processed);
             if (!blockHashResponse.WasSuccessful || blockHashResponse.Result?.Value?.Blockhash == null)
                 throw new Exception("Failed to get latest blockhash");
             var blockhash = blockHashResponse.Result.Value.Blockhash;
             var transaction = new TransactionBuilder()
-                .SetFeePayer(walletAccount)
+                .SetFeePayer(signerAccount)
                 .SetRecentBlockHash(blockhash)
                 .AddInstruction(systemApplicationInstruction)
                 .AddInstruction(ComputeBudgetProgram.SetComputeUnitLimit(1000000)) //be generous for now

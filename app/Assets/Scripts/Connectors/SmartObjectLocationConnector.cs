@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.Wallet;
+using UnityEngine;
 
 namespace Connectors
 {
@@ -12,6 +14,8 @@ namespace Connectors
     {
         protected override SmartObjectLocation.Accounts.SmartObjectLocation DeserialiseBytes(byte[] value)
         {
+            var encoded = System.Convert.ToBase64String(value);
+            PlayerPrefs.SetString(DataAddress, encoded);
             return SmartObjectLocation.Accounts.SmartObjectLocation.Deserialize(value);
         }
 

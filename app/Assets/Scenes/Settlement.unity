@@ -286,6 +286,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: 'FTUE_Canvas '
       objectReference: {fileID: 0}
+    - target: {fileID: 6884910878599281834, guid: 58e273776fc7a48598575fedbbcb7c9c,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6884910878599281834, guid: 58e273776fc7a48598575fedbbcb7c9c,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9059024556849378897, guid: 58e273776fc7a48598575fedbbcb7c9c,
         type: 3}
       propertyPath: m_Pivot.x
@@ -4809,21 +4819,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2340136002799926587, guid: 942055af8e39a44ce8769a0441177164,
-        type: 3}
-      propertyPath: m_ChildAlignment
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2340136002799926587, guid: 942055af8e39a44ce8769a0441177164,
-        type: 3}
-      propertyPath: m_Padding.m_Right
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2340136002799926587, guid: 942055af8e39a44ce8769a0441177164,
-        type: 3}
-      propertyPath: m_ReverseArrangement
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3794225667468131854, guid: 942055af8e39a44ce8769a0441177164,
         type: 3}
       propertyPath: m_Name
@@ -4912,7 +4907,7 @@ PrefabInstance:
     - target: {fileID: 7187663143598891768, guid: 942055af8e39a44ce8769a0441177164,
         type: 3}
       propertyPath: m_AnchorMin.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7187663143598891768, guid: 942055af8e39a44ce8769a0441177164,
         type: 3}
@@ -4922,7 +4917,7 @@ PrefabInstance:
     - target: {fileID: 7187663143598891768, guid: 942055af8e39a44ce8769a0441177164,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 1350
+      value: -120
       objectReference: {fileID: 0}
     - target: {fileID: 7187663143598891768, guid: 942055af8e39a44ce8769a0441177164,
         type: 3}

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Solana.Unity.Rpc.Models;
 using Solana.Unity.SDK;
@@ -30,7 +29,7 @@ namespace Connectors
             throw new System.NotImplementedException();
         }
 
-        public async Task<bool> Claim(int index, Dictionary<PublicKey, PublicKey> extraEntities)
+        public async Task<bool> Claim(int index)
         {
             var applySystem = await ApplySystem(new PublicKey("4CjxHvNUpoCYomULBFTvmkTQPaNd9QDHPhZQ6eB9bZEf"),
                 new { index }, null, _token.GetMintExtraAccounts());

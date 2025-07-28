@@ -19,6 +19,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using Utils.Injection;
+using Random = UnityEngine.Random;
 using Transaction = Solana.Unity.Rpc.Models.Transaction;
 
 namespace View.UI
@@ -79,12 +80,26 @@ namespace View.UI
         {
             submitButton.gameObject.SetActive(true);
             progressContainer.SetActive(false);
-            
+
+            PickRandomTokenIcon();
+
+            nameInput.text = string.Empty;
+            symbolInput.text = string.Empty;
+            descriptionInput.text = string.Empty;
+
+            recipeFood.text = "0";
+            recipeWater.text = "0";
+            recipeWood.text = "0";
+            recipeStone.text = "0";
+
             OnRecipeChange();
         }
 
         public void OpenImage()
         {
+            PickRandomTokenIcon();
+
+            return;
 #if UNITY_EDITOR
 
             var path = EditorUtility.OpenFilePanel("Select PNG Image", "", "png");
@@ -113,6 +128,12 @@ namespace View.UI
 #else
             UploadFile(gameObject.name, nameof(OnFileUploaded), ".png");
 #endif
+        }
+
+        private void PickRandomTokenIcon()
+        {
+            var sprites = Resources.LoadAll<Sprite>("TokenIcons");
+            icon.sprite = sprites[Random.Range(0, sprites.Length)];
         }
 
         // Called from JS with PNG bytes
@@ -163,19 +184,19 @@ namespace View.UI
                 _recipeFoodValue = _hero.Get().Backpack.Food;
                 recipeFood.text = _recipeFoodValue.ToString();
             }
-            
+
             if (_recipeWaterValue > _hero.Get().Backpack.Water)
             {
                 _recipeWaterValue = _hero.Get().Backpack.Water;
                 recipeWater.text = _recipeWaterValue.ToString();
             }
-            
+
             if (_recipeWoodValue > _hero.Get().Backpack.Wood)
             {
                 _recipeWoodValue = _hero.Get().Backpack.Wood;
                 recipeWood.text = _recipeWoodValue.ToString();
             }
-            
+
             if (_recipeStoneValue > _hero.Get().Backpack.Stone)
             {
                 _recipeStoneValue = _hero.Get().Backpack.Stone;
@@ -227,10 +248,27 @@ namespace View.UI
             SetProgressStep(TokenCreationSteps.MetadataUpload);
 
             var metadataJson = JsonUtility.ToJson(metadata, true);
+
             var metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
             string metadataIpfsUrl = null;
             yield return UploadFileToPinataV3(metadataBytes, "metadata.json", "application/json",
-                cid => metadataIpfsUrl = cid);
+                cid =>
+                {
+                    metadataIpfsUrl = cid;
+
+                    var isWebGL = Application.platform == RuntimePlatform.WebGLPlayer;
+                    var cacheDir = Path.Combine(Application.persistentDataPath, "cache");
+                    var jsonPath = Path.Combine(cacheDir, $"{cid}.meta.json");
+                    if (isWebGL) return;
+                    try
+                    {
+                        File.WriteAllText(jsonPath, metadataJson);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning("Failed to cache metadata: " + e.Message);
+                    }
+                });
 
             _ = CreateTokenAndSmartObject(metadata.name, metadata.symbol, metadataIpfsUrl);
         }

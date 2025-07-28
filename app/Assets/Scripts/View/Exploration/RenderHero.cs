@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Connectors;
 using Model;
 using Notifications;
-using Solana.Unity.Wallet;
 using TMPro;
 using UnityEngine;
 using Utils.Injection;
@@ -108,7 +107,7 @@ namespace View.Exploration
 
             var diff = _currentTarget.Value - transform.position;
 
-            if (Vector3.Angle(diff, transform.forward) > 90) // || diff.magnitude < .1f)
+            //if (Vector3.Angle(diff, transform.forward) > 90) // || diff.magnitude < .1f)
             {
                 _position = _path[0];
                 _path.RemoveAt(0);
@@ -170,10 +169,7 @@ namespace View.Exploration
         {
             if (_loot.HasLootAt(_position, out var lootIndex))
 
-                _ = _lootConnector.Claim(lootIndex, new Dictionary<PublicKey, PublicKey>()
-                {
-                    { new PublicKey(_player.EntityPda), _connector.GetComponentProgramAddress() },
-                });
+                _ = _lootConnector.Claim(lootIndex);
 
 
             else if (_smartObjects.HasSmartObjectNextTo(_position, out var entity))
