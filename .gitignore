@@ -17,3 +17,4 @@ target/deploy/*.so
 target/rust-analyzer
 app/web-bin
 target/sbpf-solana-solana
+*.apk

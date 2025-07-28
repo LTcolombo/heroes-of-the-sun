@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Connectors;
 using Hero.Program;
+using Solana.Unity.Rpc.Models;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
@@ -31,15 +32,30 @@ namespace View.Exploration
 
             //load others after
 
-            var list = new List<Solana.Unity.Rpc.Models.MemCmp>
+            var loaded = new HashSet<string>() { renderHero.DataAddress };
+
+            var list = new List<MemCmp>
                 { new() { Bytes = Hero.Accounts.Hero.ACCOUNT_DISCRIMINATOR_B58, Offset = 0 } };
 
-            var accounts = (await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
-                new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result;
+            var accounts = new List<AccountKeyPair>();
 
-            // //concat with rollup accounts            
-            // accounts = accounts.Concat((await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
-            //     new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result).ToList();
+            foreach (var hero in (await Web3Utils.EphemeralWallet.ActiveRpcClient.GetProgramAccountsAsync(
+                         new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result)
+            {
+                if (loaded.Contains(hero.PublicKey))
+                    continue;
+                
+                accounts.Add(hero);
+            }
+            
+            foreach (var hero in (await Web3.Wallet.ActiveRpcClient.GetProgramAccountsAsync(
+                         new PublicKey(HeroProgram.ID), Commitment.Confirmed, memCmpList: list)).Result)
+            {
+                if (loaded.Contains(hero.PublicKey))
+                    continue;
+                
+                accounts.Add(hero);
+            }
 
             foreach (var account in accounts)
             {
