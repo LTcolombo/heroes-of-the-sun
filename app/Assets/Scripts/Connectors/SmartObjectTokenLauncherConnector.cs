@@ -45,7 +45,7 @@ namespace Connectors
             var initSystemAddress = new PublicKey("AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap");
             return await ApplySystem(initSystemAddress,
                 new { token_name, token_symbol, token_uri, recipe_food, recipe_water, recipe_wood, recipe_stone }, null,
-                _token.GetCreateExtraAccounts(mintPublicKey, initSystemAddress), true);
+                _token.GetCreateExtraAccounts(mintPublicKey, initSystemAddress));
         }
 
         public async Task<bool> Interact(int quantity, PublicKey mint)

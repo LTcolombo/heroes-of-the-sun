@@ -69,7 +69,9 @@ namespace Connectors
 
         public AccountMeta[] GetCreateExtraAccounts(PublicKey mint, PublicKey system)
         {
-            var authority = Web3.Wallet.Account;
+            var authority = Web3Utils.SessionToken == null
+                ? Web3.Wallet.Account
+                : Web3Utils.SessionWallet.Account;
 
             var extraAccounts = new List<AccountMeta>
             {
@@ -83,10 +85,10 @@ namespace Connectors
                 AccountMeta.ReadOnly(new PublicKey("SysvarRent111111111111111111111111111111111"), false),
             };
 
-            // if (Web3Utils.SessionWallet?.SessionTokenPDA != null)
-            // {
-            //     extraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
-            // }
+            if (Web3Utils.SessionWallet?.SessionTokenPDA != null)
+            {
+                extraAccounts.Add(AccountMeta.ReadOnly(Web3Utils.SessionWallet?.SessionTokenPDA, false));
+            }
 
             return extraAccounts.ToArray();
         }
