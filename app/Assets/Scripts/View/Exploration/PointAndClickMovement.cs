@@ -23,6 +23,16 @@ namespace View.Exploration
             _eventSystem = EventSystem.current;
         }
 
+        private bool IsPointerOverUI()
+        {
+            if (Input.touchCount > 0)
+            {
+                var touch = Input.GetTouch(0);
+                return _eventSystem.IsPointerOverGameObject(touch.fingerId);
+            }
+            return _eventSystem.IsPointerOverGameObject();
+        }
+
         public void SetDataAddress(string value)
         {
             _connector.SetDataAddress(value);
@@ -33,7 +43,7 @@ namespace View.Exploration
             if (_gridInteraction.State != GridInteractionState.Idle)
                 return;
 
-            if (_eventSystem.IsPointerOverGameObject())
+            if (IsPointerOverUI())
                 return;
             
             if (Input.GetMouseButtonDown(0))
@@ -41,7 +51,7 @@ namespace View.Exploration
 
             if (Input.GetMouseButtonUp(0) && Time.time - _mouseDownTime < .5f)
             {
-                if (EventSystem.current.IsPointerOverGameObject())
+                if (IsPointerOverUI())
                     return;
 
                 var mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);

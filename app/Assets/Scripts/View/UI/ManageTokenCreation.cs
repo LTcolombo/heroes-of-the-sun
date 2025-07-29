@@ -35,6 +35,7 @@ namespace View.UI
         [SerializeField] private Text recipeStone;
 
         [SerializeField] private Button submitButton;
+        [SerializeField] private Button closeButton;
 
         [SerializeField] private GameObject progressContainer;
         [SerializeField] private Text progressLabel;
@@ -77,6 +78,7 @@ namespace View.UI
         private void OnEnable()
         {
             submitButton.gameObject.SetActive(true);
+            closeButton.gameObject.SetActive(true);
             progressContainer.SetActive(false);
 
             PickRandomTokenIcon();
@@ -177,29 +179,29 @@ namespace View.UI
                 return;
             }
 
-            if (_recipeFoodValue > _hero.Get().Backpack.Food)
-            {
-                _recipeFoodValue = _hero.Get().Backpack.Food;
-                recipeFood.text = _recipeFoodValue.ToString();
-            }
-
-            if (_recipeWaterValue > _hero.Get().Backpack.Water)
-            {
-                _recipeWaterValue = _hero.Get().Backpack.Water;
-                recipeWater.text = _recipeWaterValue.ToString();
-            }
-
-            if (_recipeWoodValue > _hero.Get().Backpack.Wood)
-            {
-                _recipeWoodValue = _hero.Get().Backpack.Wood;
-                recipeWood.text = _recipeWoodValue.ToString();
-            }
-
-            if (_recipeStoneValue > _hero.Get().Backpack.Stone)
-            {
-                _recipeStoneValue = _hero.Get().Backpack.Stone;
-                recipeStone.text = _recipeStoneValue.ToString();
-            }
+            // if (_recipeFoodValue > _hero.Get().Backpack.Food)
+            // {
+            //     _recipeFoodValue = _hero.Get().Backpack.Food;
+            //     recipeFood.text = _recipeFoodValue.ToString();
+            // }
+            //
+            // if (_recipeWaterValue > _hero.Get().Backpack.Water)
+            // {
+            //     _recipeWaterValue = _hero.Get().Backpack.Water;
+            //     recipeWater.text = _recipeWaterValue.ToString();
+            // }
+            //
+            // if (_recipeWoodValue > _hero.Get().Backpack.Wood)
+            // {
+            //     _recipeWoodValue = _hero.Get().Backpack.Wood;
+            //     recipeWood.text = _recipeWoodValue.ToString();
+            // }
+            //
+            // if (_recipeStoneValue > _hero.Get().Backpack.Stone)
+            // {
+            //     _recipeStoneValue = _hero.Get().Backpack.Stone;
+            //     recipeStone.text = _recipeStoneValue.ToString();
+            // }
 
             if (_recipeFoodValue + _recipeWaterValue + _recipeWoodValue + _recipeStoneValue == 0)
             {
@@ -213,6 +215,7 @@ namespace View.UI
         public void OnSubmit()
         {
             submitButton.gameObject.SetActive(false);
+            closeButton.gameObject.SetActive(false);
             progressContainer.SetActive(true);
 
             StartCoroutine(UploadImageAndMetadataV3());

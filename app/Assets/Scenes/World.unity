@@ -485,7 +485,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 25
   m_TargetDisplay: 0
 --- !u!224 &52956950
 RectTransform:
@@ -9099,6 +9099,7 @@ MonoBehaviour:
   recipeWood: {fileID: 1643595833}
   recipeStone: {fileID: 683260164}
   submitButton: {fileID: 865296416}
+  closeButton: {fileID: 844756248}
   progressContainer: {fileID: 1781414821}
   progressLabel: {fileID: 464064912}
   progressBar: {fileID: 1274804786}
@@ -13451,7 +13452,7 @@ SceneRoots:
   - {fileID: 314354236}
   - {fileID: 1764238909}
   - {fileID: 176939937}
-  - {fileID: 52956950}
   - {fileID: 1722225862}
   - {fileID: 689399641}
+  - {fileID: 52956950}
   - {fileID: 1736546153}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Model;
 using Smartobjecttokenlauncher.Types;
@@ -50,6 +51,9 @@ namespace View.UI.World
                 StartCoroutine(LoadMetadata(value.Uri));
 
             OnQuantityUpdated();
+            
+            _player.Updated.Add(OnQuantityUpdated);
+            _token.Updated.Add(OnQuantityUpdated);
         }
 
         public void OnQuantityUpdated()
@@ -197,6 +201,12 @@ namespace View.UI.World
             }
             Debug.LogWarning("Could not extract CID from URL: " + url);
             return System.IO.Path.GetFileNameWithoutExtension(url); // fallback
+        }
+
+        private void OnDestroy()
+        {
+            _player.Updated.Remove(OnQuantityUpdated);
+            _token.Updated.Remove(OnQuantityUpdated);
         }
     }
 }

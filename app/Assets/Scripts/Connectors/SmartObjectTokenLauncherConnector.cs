@@ -11,6 +11,7 @@ using Solana.Unity.Wallet;
 using UnityEngine;
 using Utils;
 using Utils.Injection;
+using View;
 
 namespace Connectors
 {
@@ -50,6 +51,7 @@ namespace Connectors
 
         public async Task<bool> Interact(int quantity, PublicKey mint)
         {
+            Dimmer.Visible = true;
             await _token.EnsureVaultAtaExists(new(DataAddress));
 
             await _hero.SetEntityPda(_player.EntityPda, false);
@@ -75,6 +77,8 @@ namespace Connectors
 
             //copy to ER
             await _hero.Move(data.X, data.Y);
+            
+            Dimmer.Visible = false;
 
             return result;
         }
