@@ -5,7 +5,6 @@ using Connectors;
 using Hero.Program;
 using Model;
 using Notifications;
-using Smartobjectdeity.Accounts;
 using Solana.Unity.Wallet;
 using Utils;
 using Utils.Injection;
@@ -13,7 +12,7 @@ using World.Program;
 
 namespace View.Exploration.SmartObjectTypes
 {
-    public class RenderSmartObjectDeity : InjectableBehaviour
+    public class RenderSmartObjectDeity : InjectableBehaviour, ISmartObject
     {
         [Inject] private PlayerConnector _playerConnector;
         [Inject] private SmartObjectDeityConnector _connector;
@@ -22,7 +21,7 @@ namespace View.Exploration.SmartObjectTypes
         [Inject] private GridInteractionStateModel _gridInteractionState;
         [Inject] private TokenConnector _token;
 
-        private SmartObjectDeity _data;
+        private SmartObjectDeity.Accounts.SmartObjectDeity _data;
 
         private void Start()
         {
@@ -61,7 +60,12 @@ namespace View.Exploration.SmartObjectTypes
             await _connector.Subscribe(OnDataUpdate);
         }
 
-        private void OnDataUpdate(SmartObjectDeity value)
+        public async Task UpdateData()
+        {
+            await _connector.LoadData();
+        }
+
+        private void OnDataUpdate(SmartObjectDeity.Accounts.SmartObjectDeity value)
         {
             _data = value;
         }

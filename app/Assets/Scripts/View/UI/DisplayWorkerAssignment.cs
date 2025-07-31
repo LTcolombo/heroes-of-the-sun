@@ -3,7 +3,6 @@ using Connectors;
 using Model;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using Utils.Injection;
 
 namespace View.UI

@@ -6,6 +6,7 @@ using Model;
 using Newtonsoft.Json;
 using Player;
 using Player.Program;
+using Solana.Unity.Rpc.Models;
 using Solana.Unity.Rpc.Types;
 using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
@@ -29,6 +30,11 @@ namespace Connectors
         protected override Player.Accounts.Player DeserialiseBytes(byte[] value)
         {
             return Player.Accounts.Player.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<bool> AssignSettlement(Dictionary<PublicKey, PublicKey> extraEntities)

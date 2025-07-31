@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Connectors;
 using Model;
 using Notifications;
-using Solana.Unity.Wallet;
 using TMPro;
 using UnityEngine;
 using Utils.Injection;
+using View.UI;
 
 namespace View.Exploration
 {
@@ -25,6 +25,7 @@ namespace View.Exploration
         [Inject] private RequestInteractionWithSmartObject _interact;
 
         [SerializeField] private TMP_Text keyLabel;
+        [SerializeField] private DisplayBackpack backpack;
 
         private LineRenderer _line;
 
@@ -38,23 +39,43 @@ namespace View.Exploration
         private Hero.Accounts.Hero _data;
         private Vector2Int _position;
 
+        public string DataAddress => _connector.DataAddress;
+
         private void Start()
         {
             _line = GetComponent<LineRenderer>();
         }
 
+
+        public async Task SetEntity(string value)
+        {
+            await _connector.SetEntityPda(value, false);
+            await Init(true);
+        }
+        
         public async Task SetDataAddress(string value)
         {
             _connector.SetDataAddress(value);
+            await Init(false);
+        }
+
+        private async Task Init(bool own)
+        {
             _data = await _connector.LoadData();
             keyLabel.text = _data.Owner.ToString()[..4];
 
             await _connector.Subscribe(OnDataUpdate);
 
-            if (_data.Owner.ToString() == _player.DataAddress)
+            if (own)
             {
                 _playerHero.Set(_data);
-                gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(value);
+                gameObject.AddComponent<PointAndClickMovement>().SetDataAddress(_connector.DataAddress);
+
+                backpack.gameObject.SetActive(true);
+            }
+            else
+            {
+                backpack.gameObject.SetActive(false);
             }
 
 
@@ -148,10 +169,7 @@ namespace View.Exploration
         {
             if (_loot.HasLootAt(_position, out var lootIndex))
 
-                _ = _lootConnector.Claim(lootIndex, new Dictionary<PublicKey, PublicKey>()
-                {
-                    { new PublicKey(_player.EntityPda), _connector.GetComponentProgramAddress() },
-                });
+                _ = _lootConnector.Claim(lootIndex);
 
 
             else if (_smartObjects.HasSmartObjectNextTo(_position, out var entity))

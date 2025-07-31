@@ -4,11 +4,12 @@ all:
 	-exec dotnet anchorgen -i target/idl/player.json -o app/Assets/Scripts/Bolt/Player.cs  \;
 	-exec dotnet anchorgen -i target/idl/locationallocator.json -o app/Assets/Scripts/Bolt/LocationAllocator.cs  \;
 	-exec dotnet anchorgen -i target/idl/hero.json -o app/Assets/Scripts/Bolt/Hero.cs  \;
-	-exec dotnet anchorgen -i target/idl/lootdistribution.json -o app/Assets/Scripts/Bolt/LootDistribution.cs  \;
-	-exec dotnet anchorgen -i target/idl/smartobjectlocation.json -o app/Assets/Scripts/Bolt/SmartObjectLocation.cs  \;
-	-exec dotnet anchorgen -i target/idl/smartobjectdeity.json -o app/Assets/Scripts/Bolt/SmartObjectDeity.cs  \;
+	-exec dotnet anchorgen -i target/idl/loot_distribution.json -o app/Assets/Scripts/Bolt/LootDistribution.cs  \;
+	-exec dotnet anchorgen -i target/idl/smart_object_location.json -o app/Assets/Scripts/Bolt/SmartObjectLocation.cs  \;
+	-exec dotnet anchorgen -i target/idl/smart_object_deity.json -o app/Assets/Scripts/Bolt/SmartObjectDeity.cs  \;
 	-exec dotnet anchorgen -i target/idl/token_minter.json -o app/Assets/Scripts/Bolt/TokenMinter.cs  \;
 	-exec dotnet anchorgen -i target/idl/deity_bot.json -o app/Assets/Scripts/Bolt/DeityBot.cs  \;
+	-exec dotnet anchorgen -i target/idl/smartobjecttokenlauncher.json -o app/Assets/Scripts/Bolt/SmartObjectTokenLauncher.cs  \;
 
 
 
@@ -38,6 +39,19 @@ extend:
 	- exec solana program extend BExuAEwcKxKeqHSN8C1WetUAd6Tm71cZEiP8EBSrH55T 50000
 	- exec solana program extend 62f9zAUjCN5VFqWF43qSUrW6CvivqhsEjDvCHwQ1SjgR 50000
 	- exec solana program extend C2H1sb7ZVpgEZFWqXujRK3rx5C2543GNN251wmgfbhUH 50000
+	- exec solana program extend 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 50000
+	- exec solana program extend AdrPpoYr67ZcDZsQxsPgeosE3sQbZxercbUn8i1dcvap 50000
+	- exec solana program extend DUW1KczxcpeTEY7j9nkvcuAdWGNWoadTeDBKN5Z9xhst 50000
+
+	
+
+idl_local:
+	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster l
+	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster l
+
 
 idl:
-	-exec bolt idl init -f target/idl/assign_settlement.json 42g6wojVK214btG2oUHg8vziW8UaUiQfPZ6K9kMGTCp2 --provider.cluster d
+	-exec bolt idl init -f target/idl/wait.json 9F6qiZPUWN3bCnr5uVBwSmEDf8QcAFHNSVDH8L7AkZe4 --provider.cluster d
+	-exec bolt idl init -f target/idl/move_hero.json 6o9i5V3EvT9oaokbcZa7G92DWHxcqJnjXmCp94xxhQhv --provider.cluster d
+	-exec bolt idl init -f target/idl/smartobjecttokenlauncher.json 8va4yKEBACkT49C9wo94gS8ZaTdUrq2ipLgZvSNxWbd3 --provider.cluster d
+	

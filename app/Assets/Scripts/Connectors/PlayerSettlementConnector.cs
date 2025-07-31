@@ -5,8 +5,11 @@ using Cysharp.Threading.Tasks;
 using Model;
 using Notifications;
 using Solana.Unity.Rpc.Models;
+using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
+using UnityEngine;
 using Utils.Injection;
+using Utils;
 
 // ReSharper disable InconsistentNaming
 
@@ -19,11 +22,11 @@ namespace Connectors
         [Inject] private TokenConnector _token;
 
         protected override UniTask<bool> ApplySystem(PublicKey systemAddress, object args,
-            Dictionary<PublicKey, PublicKey> extraEntities = null, bool useDataAddress = false,
-            AccountMeta[] accounts = null, bool ignoreSession = false)
+            Dictionary<PublicKey, PublicKey> extraEntities = null,
+            AccountMeta[] accounts = null, bool forceMainWalletSigner = false)
         {
             _stopFtue.Dispatch();
-            return base.ApplySystem(systemAddress, args, extraEntities, useDataAddress, accounts, ignoreSession);
+            return base.ApplySystem(systemAddress, args, extraEntities, accounts, forceMainWalletSigner);
         }
 
         public async UniTask<bool> Build(byte x, byte y, byte type, int worker_index)
@@ -85,9 +88,19 @@ namespace Connectors
             //undelegate
             await Undelegate();
 
+            // if (Web3Utils.SessionWallet != null)
+            // {
+            //     var tokensTotal = 1000000000 *
+            //                       (ulong)(tokens_for_food + tokens_for_water + tokens_for_wood + tokens_for_stone);
+            //     var transfer = await Web3.Wallet.Transfer(Web3Utils.SessionWallet.Account.PublicKey,
+            //         new PublicKey(TokenConnector.TokenMintPda), tokensTotal);
+            //
+            //     Debug.Log($"transfer.Result: {transfer.Result}");
+            // }
+
             //2. apply
             var result = await ApplySystem(new PublicKey("Csna3V2jUMdQEQKUCxLsQEnYThAGPSWcPCxW9vea1S8d"),
-                new { tokens_for_food, tokens_for_water, tokens_for_wood, tokens_for_stone }, null, false,
+                new { tokens_for_food, tokens_for_water, tokens_for_wood, tokens_for_stone }, null,
                 _token.GetBurnExtraAccounts(), true);
 
             //re-delegate

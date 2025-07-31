@@ -23,11 +23,12 @@ pub fn interact_agent(ctx: Context<InteractAgent>, option: u8) -> Result<()> {
         text = option.to_string();
     }
 
+    let disc: [u8; 8]  = crate::instruction::CallbackAgent::DISCRIMINATOR.try_into().expect("Discriminator must be 8 bytes");
     solana_gpt_oracle::cpi::interact_with_llm(
         cpi_ctx,
         text,
         crate::ID,
-        crate::instruction::CallbackAgent::discriminator(),
+        disc,
         Some(vec![
             solana_gpt_oracle::AccountMeta {
                 pubkey: ctx.accounts.payer.to_account_info().key(),

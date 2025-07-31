@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Hero.Program;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 
 namespace Connectors
@@ -15,6 +17,15 @@ namespace Connectors
             return Hero.Accounts.Hero.Deserialize(value);
         }
 
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            return HeroProgram.Undelegate(new()
+            {
+                Payer = Web3.Account,
+                DelegatedAccount = playerDataPda
+            });
+        }
+
         public override PublicKey GetComponentProgramAddress()
         {
             return new PublicKey(HeroProgram.ID);
@@ -23,7 +34,7 @@ namespace Connectors
         public async UniTask<bool> Move(int x, int y)
         {
             return await ApplySystem(new PublicKey("6o9i5V3EvT9oaokbcZa7G92DWHxcqJnjXmCp94xxhQhv"),
-                new { x, y }, null, true);
+                new { x, y });
         }
         
 

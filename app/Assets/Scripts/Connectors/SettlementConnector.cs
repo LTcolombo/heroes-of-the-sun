@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Model;
+using Settlement.Program;
+using Solana.Unity.Rpc.Models;
+using Solana.Unity.SDK;
 using Solana.Unity.Wallet;
 using Utils.Injection;
 
@@ -19,6 +22,15 @@ namespace Connectors
         protected override Settlement.Accounts.Settlement DeserialiseBytes(byte[] value)
         {
             return Settlement.Accounts.Settlement.Deserialize(value);
+        }
+
+        protected override TransactionInstruction GetUndelegateIx(PublicKey playerDataPda)
+        {
+            return SettlementProgram.Undelegate(new()
+            {
+                Payer = Web3.Account,
+                DelegatedAccount = playerDataPda
+            });
         }
     }
 }

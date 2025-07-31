@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { AccountMeta, PublicKey } from "@solana/web3.js";
 import {
+  FindComponentPda,
   InitializeNewWorld,
 } from "@magicblock-labs/bolt-sdk"
 
@@ -30,12 +31,10 @@ export class TokenWrapper {
     )[0];
 
     this.metadata = {
-      name: "Magical Gem",
-      symbol: "MBGEM",
-      uri: "https://shdw-drive.genesysgo.net/4PMP1MG5vYGkT7gnAMb7E5kqPLLjjDzTiAaZ3xRx5Czd/gem.json",
+      name: "Gold",
+      symbol: "HOTSGOLD",
+      uri: "https://gateway.pinata.cloud/ipfs/bafkreibvkerzoie7e5oeshjrcqcrponmuthg2sz3ppr4cdao3mmnjugtka",
     };
-
-
 
     console.log(`SPL Token: \x1b[31m (mintPDA = ${this.mintPDA} \x1b[0m).`);
 
@@ -44,9 +43,8 @@ export class TokenWrapper {
       this.mintPDA,
       this.provider.wallet.publicKey
     );
-
-
   }
+
 
   async createToken() {
     console.log("recent blockhash", await this.program.provider.connection.getLatestBlockhashAndContext());
@@ -67,6 +65,58 @@ export class TokenWrapper {
     return await this.provider.connection.getTokenAccountBalance(this.associatedTokenAccountAddress)
   }
 
+  getCreateExtraAccounts(mint: anchor.web3.Keypair, system: PublicKey): anchor.web3.AccountMeta[] {
+
+    const metadataPda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").toBytes(),
+        mint.publicKey.toBytes()
+      ], new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
+    )[0];
+
+    const authorityPda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("authority"),
+        new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").toBytes(),
+        mint.publicKey.toBytes()
+      ], system
+    )[0];
+
+
+    return [
+      {
+        pubkey: mint.publicKey,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: metadataPda,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: authorityPda,
+        isSigner: false,
+        isWritable: true
+      },
+      {
+        pubkey: TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false
+      },
+      {
+        pubkey: new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+        isSigner: false,
+        isWritable: false
+      },
+      {
+        pubkey: SYSTEM_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false
+      }
+    ];
+  }
 
   getMintExtraAccounts(): AccountMeta[] {
     return [

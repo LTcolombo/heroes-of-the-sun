@@ -4,7 +4,7 @@ using Utils.Injection;
 
 namespace View.UI.Building
 {
-    public abstract class BuildingUIPanel : InjectableBehaviour
+    public abstract class AnchoredUIPanel : InjectableBehaviour
     {
         [SerializeField] public Transform worldAnchor;
         private Camera _camera;

@@ -1,4 +1,3 @@
-using System;
 using Model;
 using Settlement.Types;
 using UnityEngine;
@@ -67,7 +66,7 @@ namespace View.UI
                 stoneBar.fillAmount = GetProgress(settlement.Treasury.Stone, caps.Stone);
                 stoneDiff.text = FormatDiff(CalculateStoneDiff());
 
-                coinsLabel.text = _token.Get().ToString();
+                coinsLabel.text = $"{_token.Get():0.00}";
                 coinsBar.fillAmount = 0;
                 coinsDiff.text = "";
             }

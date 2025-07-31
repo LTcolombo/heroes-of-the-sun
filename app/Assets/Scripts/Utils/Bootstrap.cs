@@ -76,10 +76,9 @@ namespace Utils
             await InitialiseAnalytics();
 
 #if UNITY_EDITOR
-            var type = WalletType
-                .InGame; // (WalletType)PlayerPrefs.GetInt(SelectedWalletTypeKey, (int)WalletType.None);
+            var type = WalletType.InGame;
 #else
-      var type = WalletType.Adapter;// (WalletType)PlayerPrefs.GetInt(SelectedWalletTypeKey, (int)WalletType.None);
+            var type = WalletType.Adapter;
 #endif
             switch (type)
             {
@@ -91,7 +90,7 @@ namespace Utils
                     break;
                 case WalletType.InGame:
                     // ReSharper disable once MethodHasAsyncOverload
-                    //its not an async overload lol
+                    //there is no async overload lol
 
                     LoginInGameWallet();
                     break;
@@ -197,7 +196,7 @@ namespace Utils
                 { "PublicKey", account.PublicKey.ToString() },
             });
 
-            if (true) //(Web3.Wallet is not InGameWallet)
+            // if (Web3.Wallet is not InGameWallet)
             {
                 Debug.Log("Initialize Session..");
                 await CreateNewSession();
@@ -278,11 +277,10 @@ namespace Utils
             await _token.LoadData();
             await _token.Subscribe(null);
 
-
             _progress = .8f;
 
             //ensure hero is created
-            label.text = $"Creating Hero Data...";
+            label.text = $"Creating Hero Data... {_player.EntityPda}";
             await _hero.SetEntityPda(_player.EntityPda);
             var hero = await _hero.LoadData();
 
@@ -303,7 +301,11 @@ namespace Utils
             if (await _hero.Delegate())
             {
                 var settlement = _playerModel.Get().Settlements[0];
-                await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
+                if (hero.X == 0 && hero.Y == 0)
+                    //initial position
+                    await _hero.Move(settlement.X * 96 - 1, settlement.Y * 96 - 1);
+                else
+                    await _hero.Move(hero.X, hero.Y); //just clone to rollup
             }
 
 

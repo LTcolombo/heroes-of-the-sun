@@ -48,15 +48,15 @@ pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
         &ctx.accounts.associated_token_account.key()
     );
 
-    msg!(
-        "session_token [authority]: {}",
-        ctx.accounts.session_token.as_ref().unwrap().authority
-    );
+    // msg!(
+    //     "session_token [authority]: {}",
+    //     ctx.accounts.session_token.as_ref().unwrap().authority
+    // );
 
-    msg!(
-        "session_token [session_signer]: {}",
-        ctx.accounts.session_token.as_ref().unwrap().session_signer
-    );
+    // msg!(
+    //     "session_token [session_signer]: {}",
+    //     ctx.accounts.session_token.as_ref().unwrap().session_signer
+    // );
 
     // PDA signer seeds
     let signer_seeds: &[&[&[u8]]] = &[&[b"mint", &[ctx.bumps.mint_account]]];

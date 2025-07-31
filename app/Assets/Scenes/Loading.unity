@@ -667,7 +667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rpcCluster: 1
-  customRpc: https://rpc.magicblock.app/devnet
+  customRpc: 
   webSocketsRpc: 
   autoConnectOnStartup: 1
   web3AuthWalletOptions:

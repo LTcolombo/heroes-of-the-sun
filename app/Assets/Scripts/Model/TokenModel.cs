@@ -24,10 +24,10 @@ namespace Model
         }
 
 
-        public ulong Get()
+        public float Get()
         {
             return _data != null
-                ? _data.amount / (ulong)Math.Pow(10, DECIMALS)
+                ? _data.amount / (float)Math.Pow(10, DECIMALS)
                 : 0;
         }
     }

@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4959206988071946}
-  - component: {fileID: -5160670822117230825}
+  - component: {fileID: -2884448614036992573}
   m_Layer: 0
-  m_Name: Totem
+  m_Name: Deity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38,7 +38,7 @@ Transform:
   - {fileID: 1456865388828252480}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-5160670822117230825
+--- !u!114 &-2884448614036992573
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1149535237560096}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cdfb37c174540c0a2aba33193a27cff, type: 3}
+  m_Script: {fileID: 11500000, guid: 4377b7efe0c14a5b8e0b59abf8c392d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &1452235850245223304
