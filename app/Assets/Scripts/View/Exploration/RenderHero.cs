@@ -107,7 +107,7 @@ namespace View.Exploration
 
             var diff = _currentTarget.Value - transform.position;
 
-            //if (Vector3.Angle(diff, transform.forward) > 90) // || diff.magnitude < .1f)
+            if (Vector3.Angle(diff, transform.forward) > 90) // || diff.magnitude < .1f)
             {
                 _position = _path[0];
                 _path.RemoveAt(0);
