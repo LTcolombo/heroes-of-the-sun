@@ -75,12 +75,10 @@ namespace Utils
         {
             await InitialiseAnalytics();
 
-#if !UNITY_EDITOR && UNITY_WEBGL
-var type = WalletType.Adapter;// (WalletType)PlayerPrefs.GetInt(SelectedWalletTypeKey, (int)WalletType.None);
-
+#if UNITY_EDITOR
+            var type = WalletType.InGame;
 #else
-            var type = WalletType
-                .InGame; // (WalletType)PlayerPrefs.GetInt(SelectedWalletTypeKey, (int)WalletType.None);
+            var type = WalletType.Adapter;
 #endif
             switch (type)
             {
