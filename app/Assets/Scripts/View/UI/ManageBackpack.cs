@@ -32,10 +32,6 @@ namespace View.UI
             await _connector.SetEntityPda(_player.EntityPda);
             //this is needed for connector to know its data account is delegated
             await _connector.LoadData();
-        }
-
-        private void OnEnable()
-        {
             UpdateValues();
         }
 

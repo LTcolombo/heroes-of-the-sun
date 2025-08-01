@@ -72,7 +72,7 @@ namespace View.Exploration.SmartObjectTypes
                         _data.Mint));
 
             var tx = Transaction.Deserialize(transaction.Build(new List<Account> { Web3.Account }));
-            var res = await Web3.Wallet.SignAndSendTransaction(tx, true);
+            await Web3.Wallet.SignAndSendTransaction(tx, true);
 
             await _connector.Interact(quantity, _data.Mint);
         }
