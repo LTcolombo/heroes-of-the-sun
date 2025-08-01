@@ -211,7 +211,7 @@ namespace Utils
             _progress = .1f;
 
             label.text = $"[{Web3.Account.PublicKey}] Loading Player Data.. ";
-            await _player.SetSeed(Web3.Account.PublicKey.Key[..20]);
+            await _player.SetSeed($"{PlayerPrefs.GetInt("ACC_BUMP", 0)}{Web3.Account.PublicKey.Key}"[..20]);
             _playerModel.Set(await _player.LoadData());
 
             _progress = .2f;

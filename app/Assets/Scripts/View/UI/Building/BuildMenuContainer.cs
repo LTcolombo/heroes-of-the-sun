@@ -46,7 +46,7 @@ namespace View.UI.Building
         {
             _nav.IsBuildMenuOpen = false;
             _gridInteraction.Updated.Remove(OnInteractionUpdated);
-            _nav.Updated.Add(OnNavigationUpdated);
+            _nav.Updated.Remove(OnNavigationUpdated);
         }
     }
 }

@@ -20,13 +20,15 @@ namespace StompyRobot.SROptions
         public void ClearPreferences()
         {
             PlayerPrefs.DeleteAll();
-            SceneManager.LoadScene("Loading");
+            SceneManager.LoadScene(0);
         }
 
         public async void Reset()
         {
-            if (await _connector.Reset())
-                _model.Set(await _connector.LoadData());
+           var curr = PlayerPrefs.GetInt("ACC_BUMP", 0);
+           PlayerPrefs.SetInt("ACC_BUMP", ++curr);
+           
+           SceneManager.LoadScene(0);
         }
 
         public async void ClaimLoot()
