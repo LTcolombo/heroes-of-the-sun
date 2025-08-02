@@ -81,7 +81,6 @@ namespace Connectors
             Debug.Log("SetDataAddress: " + _dataAddress);
         }
 
-
         public async UniTask<bool> Delegate()
         {
             var streamingClient = await GetStreamingClient();
@@ -109,8 +108,12 @@ namespace Connectors
                 return false;
             }
 
+            var baseWallet = Web3Utils.SessionWallet?.Account?.PublicKey == null
+                ? Web3.Wallet
+                : Web3Utils.SessionWallet;
+
             var txDelegate = await DelegateTransaction(new(_entityPda), new(_dataAddress));
-            var resDelegation = await Wallet.SignAndSendTransaction(txDelegate, true);
+            var resDelegation = await baseWallet.SignAndSendTransaction(txDelegate, true);
             if (resDelegation.WasSuccessful)
             {
                 Debug.Log($"Delegate Signature: {resDelegation.Result}");
@@ -158,7 +161,11 @@ namespace Connectors
             var txUndelegate = await UndelegateTransaction(new PublicKey(_dataAddress));
             try
             {
-                var resUndelegation = await Wallet.SignAndSendTransaction(txUndelegate, true);
+                var baseWallet = Web3Utils.SessionWallet?.Account?.PublicKey == null
+                    ? Web3.Wallet
+                    : Web3Utils.SessionWallet;
+
+                var resUndelegation = await baseWallet.SignAndSendTransaction(txUndelegate, true);
                 await RpcClient.ConfirmTransaction(resUndelegation.Result, Commitment.Confirmed);
 
                 Debug.Log($"Undelegate Signature: {resUndelegation.Result}");
@@ -215,8 +222,13 @@ namespace Connectors
 
         private async UniTask AcquireComponentDataAddress(bool forceCreateEntity, bool publicComponent = true)
         {
-            if (Web3.Account == null) throw new NullReferenceException("No Web3 Account");
-            var walletBase = Web3.Wallet;
+            var walletBase = Web3Utils.SessionToken == null //|| true
+                ? Web3.Wallet
+                : Web3Utils.SessionWallet;
+
+            if (walletBase == null) throw new NullReferenceException("No Web3 Account");
+
+            var payer = walletBase.Account;
 
             if (_dataAddress == null)
             {
@@ -238,12 +250,12 @@ namespace Connectors
                     {
                         var tx = new Transaction
                         {
-                            FeePayer = Web3.Account,
+                            FeePayer = payer,
                             Instructions = new List<TransactionInstruction>
                             {
                                 WorldProgram.AddEntity(new AddEntityAccounts()
                                 {
-                                    Payer = Web3.Account.PublicKey,
+                                    Payer = payer.PublicKey,
                                     World = new(WorldPda),
                                     Entity = new(_entityPda),
                                     SystemProgram = SystemProgram.ProgramIdKey
@@ -264,17 +276,17 @@ namespace Connectors
                 {
                     var tx = new Transaction
                     {
-                        FeePayer = Web3.Account,
+                        FeePayer = payer,
                         Instructions = new List<TransactionInstruction>
                         {
                             WorldProgram.InitializeComponent(new InitializeComponentAccounts()
                             {
-                                Payer = Web3.Account,
+                                Payer = payer,
                                 Entity = new PublicKey(_entityPda),
                                 Data = dataAddress,
                                 ComponentProgram = GetComponentProgramAddress(),
                                 SystemProgram = SystemProgram.ProgramIdKey,
-                                Authority = publicComponent ? new(WorldProgram.ID) : Web3.Wallet.Account.PublicKey,
+                                Authority = publicComponent ? new(WorldProgram.ID) : payer.PublicKey,
                                 InstructionSysvarAccount = SysVars.InstructionAccount
                             })
                         },
@@ -288,12 +300,12 @@ namespace Connectors
                 _dataAddress = dataAddress;
             }
         }
-        
+
         public virtual async UniTask<T> LoadData()
         {
             if (string.IsNullOrEmpty(_dataAddress))
                 return default;
-            
+
             if (PlayerPrefs.HasKey(DataAddress))
             {
                 var cached = PlayerPrefs.GetString(DataAddress);
@@ -393,7 +405,7 @@ namespace Connectors
             var authority = forceMainWalletSigner || Web3Utils.SessionWallet?.Account?.PublicKey == null
                 ? Web3.Wallet.Account.PublicKey
                 : Web3Utils.SessionWallet.Account.PublicKey;
-            
+
             var ix = Bolt.World.ApplySystem(new PublicKey(WorldPda), systemAddress,
                 systemInput.ToArray(), args, authority,
                 forceMainWalletSigner ? null : Web3Utils.SessionWallet?.SessionTokenPDA);
@@ -426,31 +438,37 @@ namespace Connectors
                 .AddInstruction(ComputeBudgetProgram.SetComputeUnitLimit(1000000)) //be generous for now
                 .Build(signers);
 
-            var signature = await RpcClient.SendTransactionAsync(transaction, true, Commitment.Confirmed);
-            if (!signature.WasSuccessful)
-            {
-                var errorMessage = "Failed At: " + RpcClient.NodeAddress.AbsoluteUri;
-                errorMessage += "\n" + signature.Reason;
-                errorMessage += "\n" + signature.RawRpcResponse;
-                if (signature.ErrorData != null)
-                {
-                    errorMessage += "\n" + string.Join("\n", signature.ErrorData.Logs);
-                }
+            var sendTx = await RpcClient.SendTransactionAsync(transaction, true, Commitment.Confirmed);
+            await RpcClient.ConfirmTransaction(sendTx.Result, Commitment.Confirmed);
 
-                Debug.LogError(errorMessage);
-                return false;
+            Debug.Log($"System Application Result: {sendTx.WasSuccessful} {sendTx.Result}");
+
+            var DEBUG = true;
+            if (DEBUG)
+            {
+                var tx = await RpcClient.GetTransactionAsync(sendTx.Result, Commitment.Confirmed);
+
+                if (tx.Result.Meta.Error != null)
+                {
+                    var errorMessage = $"Failed At: {RpcClient.NodeAddress.AbsoluteUri} \n{JsonConvert.SerializeObject(tx.Result.Meta.Error)}";
+
+                    Debug.LogError(errorMessage);
+                    return false;
+                }
             }
 
-            await RpcClient.ConfirmTransaction(signature.Result, Commitment.Confirmed);
-            Debug.Log($"System Application Result: {signature.WasSuccessful} {signature.Result}");
             return true;
         }
 
         public async UniTask<Transaction> DelegateTransaction(PublicKey entityPda, PublicKey playerDataPda)
         {
+            var feePayer = Web3Utils.SessionToken == null
+                ? Web3.Wallet.Account
+                : Web3Utils.SessionWallet.Account;
+
             var tx = new Transaction()
             {
-                FeePayer = Web3.Account,
+                FeePayer = feePayer,
                 Instructions = new List<TransactionInstruction>(),
                 RecentBlockHash = await Web3.BlockHash(commitment: Commitment.Confirmed, useCache: false)
             };
@@ -461,7 +479,7 @@ namespace Connectors
             // Delegate the player data pda
             DelegateAccounts delegateAccounts = new()
             {
-                Payer = Web3.Account,
+                Payer = feePayer,
                 Entity = entityPda,
                 Account = playerDataPda,
                 DelegationProgram = DelegationProgram,

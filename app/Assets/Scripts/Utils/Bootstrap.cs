@@ -196,22 +196,14 @@ namespace Utils
                 { "PublicKey", account.PublicKey.ToString() },
             });
 
-            // if (Web3.Wallet is not InGameWallet)
-            {
-                Debug.Log("Initialize Session..");
-                await CreateNewSession();
-            }
-            // else
-            // {
-            //     label.text = $"[{Web3.Account.PublicKey}] Balance top up.. ";
-            //     await Web3Utils.EnsureBalance();
-            // }
-
-
+            Debug.Log("Initialize Session..");
+            await CreateNewSession();
+            
             _progress = .1f;
 
-            label.text = $"[{Web3.Account.PublicKey}] Loading Player Data.. ";
-            await _player.SetSeed($"{PlayerPrefs.GetInt("ACC_BUMP", 0)}{Web3.Account.PublicKey.Key}"[..20]);
+            var accountBump = PlayerPrefs.GetInt("ACC_BUMP", 0);
+            label.text = $"[{Web3.Account.PublicKey}] Loading Player Data.. {accountBump}";
+            await _player.SetSeed($"{accountBump}{Web3.Account.PublicKey.Key}"[..20]);
             _playerModel.Set(await _player.LoadData());
 
             _progress = .2f;
@@ -281,7 +273,7 @@ namespace Utils
 
             //ensure hero is created
             label.text = $"Creating Hero Data... {_player.EntityPda}";
-            await _hero.SetEntityPda(_player.EntityPda);
+            await _hero.SetEntityPda(_player.EntityPda, true, true); //set hero to public so others can interact with it
             var hero = await _hero.LoadData();
 
             if (hero.Owner == null || hero.Owner.ToString().All(c => c == '1'))
@@ -380,7 +372,7 @@ namespace Utils
                 RecentBlockHash = await Web3.BlockHash(Commitment.Confirmed, false)
             };
 
-            var sessionIx = Web3Utils.SessionWallet.CreateSessionIX(true, GetSessionKeysEndTime(), 100000000);
+            var sessionIx = Web3Utils.SessionWallet.CreateSessionIX(true, GetSessionKeysEndTime(), 1000000000);
             transaction.Add(sessionIx);
             transaction.PartialSign(new[] { Web3.Account, Web3Utils.SessionWallet.Account });
 
