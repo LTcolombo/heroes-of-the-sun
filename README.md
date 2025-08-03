@@ -1,27 +1,33 @@
 # Heroes of the Sun
 
-**Heroes of the Sun** is a fully on-chain settlement builder and exploration game built on Solana, powered by the Magicblock stack.
+**Heroes of the Sun** is a fully onchain simulation that can't be shut down or tampered with.  
+Think **Roblox**, but permissionless and unstoppable. Players establish settlements, create and collect resources, and interact with an ever-evolving world shaped entirely by user-generated actions.
 
-You manage a small settlement turn by turn: gathering resources, keeping your workers alive, constructing buildings, and unlocking tech. Every action is stored on-chain. You’ll explore a shared, procedurally generated world, collect loot, and mint **GOLD** — a fungible token you can use to buy resources or trade outside the game.
+The game begins with familiar resource-management loops — gathering resources, keeping workers alive, constructing buildings, and unlocking tech.  
+Players can then venture into a shared, procedurally generated world to explore and engage with a fully open, verifiable platform and economy.
 
-One of the most interesting mechanics is player-deployed token minters. These are smart objects placed in the world that let other players mint custom tokens using **GOLD** and in-game resources. Pricing is dynamic and driven by a bonding curve, and token metadata is stored on IPFS.
+One of the core innovations is **smart objects** — in-game items mapped to newly deployed smart contracts.  
+Smart objects allow creators to easily "mod" the game, while players interact with an expanding set of behaviors and resources.  
+There are no servers: all game logic is defined through Solana programs.  
+
+Early examples include:
+- A **custom token generator** for new resources, using bonding curve pricing (similar to pump.fun)
+- An **AI oracle** that simulates a god-like agent, shaping gameplay outcomes
 
 ---
 
 ## Key Features
 
-- Fully on-chain simulation:
-  - Turns, worker actions, resource collection, building deterioration, and upgrades are all executed and stored on-chain
-- Multiplayer procedural world:
-  - Players can explore and interact with loot and smart objects across a shared world map
-- GOLD token economy:
-  - Fungible token minted from loot, exchangeable for in-game resources, or tradeable externally
-- Player-created token minters:
-  - Smart objects with crafting recipes and bonding curve pricing
-  - Tokens include on-chain metadata hosted via IPFS
-- Built on the Magicblock stack:
-  - **Bolt** runtime for simulation logic
-  - **Session tokens** for frictionless authentication
-  - **Ephemeral rollups** for fast and scalable execution
+- Unstoppable, fully autonomous multiplayer world with procedurally generated layout and player settlements  
+- Fully onchain simulation: turns, workers, resources, deterioration, upgrades — everything lives on Solana  
+- Player-deployed token minters with bonding curve pricing and IPFS metadata  
+- Loot-based **GOLD** token that can be exchanged for resources or traded externally  
+- Powered by **Solana + Magicblock**:  
+  - Ephemeral rollups for fast, cheap gameplay  
+  - Bolt ECS for composable logic  
+  - Session tokens for seamless game interactions
 
 ---
+
+**HOTS** pushes the boundaries of what a creator platform or digital world can be when deployed entirely onchain.  
+All game state and logic lives on Solana, with **Magicblock** providing multiplayer infrastructure through verifiable, rollup-powered state transitions.
